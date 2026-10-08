@@ -13,8 +13,10 @@
 #
 # ONE FILE, FOUR LANGUAGES, ON PURPOSE. Separate scripts drift apart; the
 # strings below are the only thing that differs, so they sit side by side
-# where a missing translation is visible at a glance - and a checker compares
-# the four key sets, because "visible at a glance" is not a verification.
+# where a missing translation is visible at a glance - and `tools/check-strings.sh`
+# compares the four key sets, because "visible at a glance" is not a verification.
+# That checker was promised by this comment and written only on 2026-10-08; for
+# two weeks this line described a verification that did not exist.
 
 set -uo pipefail
 

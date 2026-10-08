@@ -7,15 +7,37 @@ The AI executes — you decide. / ИИ исполняет — ты решаеш�
 
 ---
 
-## Перед первым занятием: проверка рабочего места
+## Перед первым занятием: два шага
 
-Скачай репозиторий и запусти проверку. **Сам факт, что скачивание получилось, уже проверяет `git` и доступ к GitHub** — две из одиннадцати позиций списка.
+**Шаг 1 — установка.** Она ставит то, что нужно курсу: редактор, Node.js, Claude Code и `gh`. Сначала в Windows, потом в Ubuntu.
+
+В **Windows PowerShell** — редактор:
+
+```powershell
+.\setup-windows.ps1 -Lang ru
+```
+
+Потом закрой и открой редактор, в нём `Ctrl+Shift+P` → `WSL: Connect to WSL`, открой терминал Ubuntu и запусти:
 
 ```bash
 git clone https://github.com/y-kolyada/b1bootcamp26.git
 cd b1bootcamp26
-./check-setup.sh
+./setup.sh --ru
 ```
+
+Установщик **ничего не удаляет**, в твои файлы не пишет без вопроса и **почти нигде не требует пароля**. Единственное место, где нужен родитель, он печатает отдельно и крупно. Хочешь сначала посмотреть, что он собирается делать, и ничего не менять:
+
+```bash
+./setup.sh --ru --dry-run
+```
+
+**Шаг 2 — проверка.** Она ничего не ставит и не меняет: смотрит и говорит, готово ли.
+
+```bash
+./check-setup.sh --ru
+```
+
+**Сам факт, что скачивание получилось, уже проверяет `git` и доступ к GitHub** — две из одиннадцати позиций списка.
 
 Скрипт **ничего не устанавливает и ничего не меняет.** Он смотрит и печатает `OK`, `FAIL` или `LOOK` по каждому пункту, а для каждого `FAIL` — одну строку, что сделать. В самом конце — строка отчёта, её нужно прислать тренеру.
 
@@ -39,17 +61,32 @@ Discord, веб-камеру, микрофон и то, что подписка 
 
 ---
 
-## Before the first session: readiness check
+## Before the first session: two steps
 
-Clone the repository and run the check. **Getting the clone at all already tests `git` and GitHub access** — two of the eleven items.
+**Step 1 — setup.** In **Windows PowerShell**, the editor:
+
+```powershell
+.\setup-windows.ps1
+```
+
+Then reopen the editor, `Ctrl+Shift+P` → `WSL: Connect to WSL`, and in the Ubuntu terminal:
 
 ```bash
 git clone https://github.com/y-kolyada/b1bootcamp26.git
 cd b1bootcamp26
+./setup.sh            # --ru, --uk, --de for the other languages
+./setup.sh --dry-run   # say what it would do, change nothing
+```
+
+It deletes nothing, writes into your own files only after asking, and needs a password in exactly one place, which it prints as a block of its own.
+
+**Step 2 — the check.** It installs nothing and changes nothing.
+
+```bash
 ./check-setup.sh
 ```
 
-The script **installs nothing and changes nothing.** It looks, and prints `OK`, `FAIL` or `LOOK` per item, with one line per `FAIL` saying what to do. The last line is a one-line report to send to the trainer.
+**Getting the clone at all already tests `git` and GitHub access** — two of the eleven items. The script looks, and prints `OK`, `FAIL` or `LOOK` per item, with one line per `FAIL` saying what to do. The last line is a one-line report to send to the trainer.
 
 ---
 
