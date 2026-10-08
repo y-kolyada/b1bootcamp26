@@ -7,7 +7,11 @@ The AI executes — you decide. / ИИ исполняет — ты решаеш�
 
 ---
 
-## Перед первым занятием: два шага
+## Перед первым занятием
+
+**Всё, что нужно сделать, лежит одним файлом: [«Твой ход 0 · Собери рабочее место»](./sessions/00-tvoy-hod.md).** Там восемь шагов по порядку, с командами, и что прислать тренеру в конце. Начинай оттуда.
+
+Ниже — то же самое коротко, для тех, кто уже знает, что делает.
 
 **Шаг 1 — установка.** Она ставит то, что нужно курсу: редактор, Node.js, Claude Code и `gh`. Сначала в Windows, потом в Ubuntu.
 
@@ -61,7 +65,9 @@ Discord, веб-камеру, микрофон и то, что подписка 
 
 ---
 
-## Before the first session: two steps
+## Before the first session
+
+**The whole thing is one file: [`sessions/00-tvoy-hod.md`](./sessions/00-tvoy-hod.md)** - eight steps in order, in Russian, with the commands and what to send the trainer. Start there. The short form follows.
 
 **Step 1 — setup.** In **Windows PowerShell**, the editor:
 
@@ -87,6 +93,20 @@ It deletes nothing, writes into your own files only after asking, and needs a pa
 ```
 
 **Getting the clone at all already tests `git` and GitHub access** — two of the eleven items. The script looks, and prints `OK`, `FAIL` or `LOOK` per item, with one line per `FAIL` saying what to do. The last line is a one-line report to send to the trainer.
+
+---
+
+## Как устроен этот репозиторий
+
+| Где | Что |
+| --- | --- |
+| корень | то, что запускает участник: `setup.sh`, `setup-windows.ps1`, `check-setup.sh` |
+| `sessions/` | по одному «Твоему ходу» на занятие, плюс нулевой |
+| `programme.md` | программа курса: восемь занятий и что каждое оставляет |
+| `programme-review.md` | ревью программы: кто её читал и что вернул |
+| `tools/` | **не для участников** — проверки самого репозитория |
+
+**Скрипты лежат в корне нарочно.** Это первое, что запускает человек, который ещё не знает, где у нас что; лишняя папка на этом пути — лишний шанс не дойти.
 
 ---
 
