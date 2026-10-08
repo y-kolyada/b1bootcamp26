@@ -40,6 +40,9 @@ ru)
   L_CODE="Редактор (IDE)"; L_EXT="Расширение Claude Code"; L_CLAUDE="Claude Code"
   L_LOGIN="Вход в аккаунт"; L_DISK="Место на диске"
   L_BROWSER="Браузер из Ubuntu"; V_NOBROWSER="открывать нечем"
+  V_ALTFOUND="Claude Code нет, но помощник есть:"
+  F_LOGIN2="основной путь курса - подписка родителя: claude, потом /login. Без неё скажи тренеру, пойдёшь по альтернативе"
+  F_CLAUDE2="основной путь - Claude Code с подпиской; с этим помощником курс тоже идёт, скажи тренеру"
   F_WSLU="нужен пароль взрослого: sudo apt install -y wslu (без него не откроется вход)"
   V_KERNEL="ядро"; V_WSL1="похоже на WSL1:"; V_NOTWSL="это не WSL"
   V_NOTINST="не установлен"; V_NOTSET="не заданы"; V_NORESP="не отвечает"; V_SET="заданы"
@@ -60,8 +63,7 @@ ru)
   F_CODE="установи VS Code (или Antigravity IDE) в Windows и расширение WSL, затем открой папку через 'WSL: Connect to WSL'"
   F_EXT="в редакторе: Extensions, найти Claude Code, Install"
   F_EXTEMPTY="открой редактор хотя бы раз, потом запусти проверку заново; если Claude Code уже стоит - просто скажи тренеру"
-  F_CLAUDE="npm install -g @anthropic-ai/claude-code   (сначала нужен Node)"
-  F_LOGIN="запусти: claude   затем выбери /login и войди под родительским аккаунтом"
+  F_CLAUDE="npm install -g @anthropic-ai/claude-code (сначала Node); без подписки скажи тренеру - дадим бесплатный путь"
   F_DISK="лучше освободить хотя бы 3 ГБ"
   M_HEAD="Проверить самому, скрипт этого не видит:"
   M_1="Discord установлен, и ты можешь войти (от 13 лет)"
@@ -81,6 +83,9 @@ uk)
   L_CODE="Редактор (IDE)"; L_EXT="Розширення Claude Code"; L_CLAUDE="Claude Code"
   L_LOGIN="Вхід в акаунт"; L_DISK="Місце на диску"
   L_BROWSER="Браузер з Ubuntu"; V_NOBROWSER="відкривати нічим"
+  V_ALTFOUND="Claude Code немає, але помічник є:"
+  F_LOGIN2="основний шлях курсу - підписка батьків: claude, потім /login. Без неї скажи тренеру, підеш альтернативою"
+  F_CLAUDE2="основний шлях - Claude Code з підпискою; з цим помічником курс теж іде, скажи тренеру"
   F_WSLU="потрібен пароль дорослого: sudo apt install -y wslu (без нього вхід не відкриється)"
   V_KERNEL="ядро"; V_WSL1="схоже на WSL1:"; V_NOTWSL="це не WSL"
   V_NOTINST="не встановлено"; V_NOTSET="не задані"; V_NORESP="не відповідає"; V_SET="задані"
@@ -101,8 +106,7 @@ uk)
   F_CODE="встанови VS Code (або Antigravity IDE) у Windows і розширення WSL, потім відкрий теку через 'WSL: Connect to WSL'"
   F_EXT="у редакторі: Extensions, знайти Claude Code, Install"
   F_EXTEMPTY="відкрий редактор хоча б раз, потім запусти перевірку знову; якщо Claude Code вже стоїть - просто скажи тренеру"
-  F_CLAUDE="npm install -g @anthropic-ai/claude-code   (спочатку потрібен Node)"
-  F_LOGIN="запусти: claude   потім обери /login і увійди під батьківським акаунтом"
+  F_CLAUDE="npm install -g @anthropic-ai/claude-code (спочатку Node); без підписки скажи тренеру - дамо безкоштовний шлях"
   F_DISK="краще звільнити хоча б 3 ГБ"
   M_HEAD="Перевір сам, скрипт цього не бачить:"
   M_1="Discord встановлено, і ти можеш увійти (від 13 років)"
@@ -122,6 +126,9 @@ de)
   L_CODE="Editor (IDE)"; L_EXT="Claude-Code-Erweiterung"; L_CLAUDE="Claude Code"
   L_LOGIN="Angemeldet"; L_DISK="Speicherplatz"
   L_BROWSER="Browser aus Ubuntu"; V_NOBROWSER="nichts zum Oeffnen da"
+  V_ALTFOUND="kein Claude Code, aber ein Helfer ist da:"
+  F_LOGIN2="Hauptweg des Kurses ist das Abo der Eltern: claude, dann /login. Ohne Abo sag es dem Trainer"
+  F_CLAUDE2="Hauptweg ist Claude Code mit Abo; mit diesem Helfer laeuft der Kurs auch, sag es dem Trainer"
   F_WSLU="Passwort eines Erwachsenen: sudo apt install -y wslu (sonst oeffnet die Anmeldung nicht)"
   V_KERNEL="Kernel"; V_WSL1="sieht nach WSL1 aus:"; V_NOTWSL="das ist kein WSL"
   V_NOTINST="nicht installiert"; V_NOTSET="nicht gesetzt"; V_NORESP="keine Antwort"; V_SET="gesetzt"
@@ -142,8 +149,7 @@ de)
   F_CODE="VS Code (oder Antigravity IDE) unter Windows samt WSL-Erweiterung installieren, dann den Ordner über 'WSL: Connect to WSL' öffnen"
   F_EXT="im Editor: Extensions, Claude Code suchen, Install"
   F_EXTEMPTY="öffne den Editor mindestens einmal und starte die Prüfung erneut; ist Claude Code schon installiert, sag einfach dem Trainer Bescheid"
-  F_CLAUDE="npm install -g @anthropic-ai/claude-code   (Node wird zuerst gebraucht)"
-  F_LOGIN="starte: claude   dann /login wählen und mit dem Konto der Eltern anmelden"
+  F_CLAUDE="npm install -g @anthropic-ai/claude-code (zuerst Node); ohne Abo sag es dem Trainer - es gibt einen kostenlosen Weg"
   F_DISK="besser mindestens 3 GB frei machen"
   M_HEAD="Das hier selbst prüfen - das Skript sieht es nicht:"
   M_1="Discord ist installiert und du kannst dich anmelden (ab 13)"
@@ -163,6 +169,9 @@ de)
   L_CODE="Editor (IDE)"; L_EXT="Claude Code extension"; L_CLAUDE="Claude Code"
   L_LOGIN="Signed in"; L_DISK="Disk space"
   L_BROWSER="Browser from Ubuntu"; V_NOBROWSER="nothing to open it with"
+  V_ALTFOUND="no Claude Code, but an assistant is here:"
+  F_LOGIN2="the course's main path is a parent's subscription: claude, then /login. Without one, tell the trainer"
+  F_CLAUDE2="the main path is Claude Code with a subscription; the course also runs with this assistant, tell the trainer"
   F_WSLU="an adult password is needed: sudo apt install -y wslu (the sign-in cannot open otherwise)"
   V_KERNEL="kernel"; V_WSL1="looks like WSL1:"; V_NOTWSL="this is not WSL"
   V_NOTINST="not installed"; V_NOTSET="not set"; V_NORESP="no response"; V_SET="set"
@@ -183,8 +192,7 @@ de)
   F_CODE="install VS Code (or Antigravity IDE) on Windows plus the WSL extension, then open the folder via 'WSL: Connect to WSL'"
   F_EXT="in the editor: Extensions, search Claude Code, Install"
   F_EXTEMPTY="open the editor at least once, then run this check again; if Claude Code is already installed, just tell the trainer"
-  F_CLAUDE="npm install -g @anthropic-ai/claude-code   (Node is needed first)"
-  F_LOGIN="run: claude   then pick /login and sign in with the parent's account"
+  F_CLAUDE="npm install -g @anthropic-ai/claude-code (Node first); without a subscription tell the trainer - there is a free path"
   F_DISK="better to free up at least 3 GB"
   M_HEAD="Check these yourself - the script cannot see them:"
   M_1="Discord is installed and you can sign in (13+)"
@@ -345,6 +353,17 @@ else
 fi
 
 # 7. Claude Code - installed, and actually signed in
+#
+# THREE STATES, NOT TWO, BY THE CONDUCTOR'S DECISION OF 2026-10-08. The course's
+# main path is a parent's Claude subscription and it keeps the session's
+# attention. A participant without one is NOT unprepared: the method is the same
+# with a free assistant, and session one carries that alternative. So a missing
+# sign-in warns and names the main path, and red is kept for the one state that
+# really blocks - no assistant of any kind on the machine.
+#
+# WHAT STILL REDDENS, so this row is not decoration: nothing to work with. A
+# browser-only participant lands here too, which is why the line says to tell
+# the trainer rather than pretending the machine is ready.
 if command -v claude >/dev/null 2>&1; then
   ok "$L_CLAUDE" "$(claude --version 2>/dev/null | head -1)"
   printf '  [ %*s ] %s %s\n' "$MARKW" '' "$(lbl "$L_LOGIN" "$MARKW")" "$(dim "$V_CHECKING")"
@@ -355,10 +374,18 @@ if command -v claude >/dev/null 2>&1; then
   else
     printf '\033[1A\033[2K'
     SHORT=$(printf '%s' "$ANSWER" | tr '\n' ' ' | cut -c1-60)
-    bad "$L_LOGIN" "${SHORT:-$V_NOANSWER}" "A" "$F_LOGIN"
+    warn "$L_LOGIN" "${SHORT:-$V_NOANSWER}" "$F_LOGIN2"
   fi
 else
-  bad "$L_CLAUDE" "$V_NOTINST" "C" "$F_CLAUDE"
+  ALT=""
+  command -v gemini >/dev/null 2>&1 && ALT="$ALT gemini"
+  command -v copilot >/dev/null 2>&1 && ALT="$ALT copilot"
+  case "${IDES:-}" in *antigravity*) ALT="$ALT antigravity" ;; esac
+  if [ -n "$ALT" ]; then
+    warn "$L_CLAUDE" "$V_ALTFOUND$ALT" "$F_CLAUDE2"
+  else
+    bad "$L_CLAUDE" "$V_NOTINST" "C" "$F_CLAUDE"
+  fi
 fi
 
 # 8. Disk space
