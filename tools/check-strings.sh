@@ -74,9 +74,20 @@ for f in "${FILES[@]}"; do
   # 3: a key no language is read by
   BODY=$(body_of "$f")
   # A key is read as $K, as ${K} or as ${#K} - all three count as read.
+  #
+  # THE HERE-STRING IS THE FIX, NOT A STYLE CHOICE. This was written as
+  # `printf '%s' "$BODY" | grep -q ...`, and under `set -o pipefail` that lies:
+  # grep exits at the first match, printf is still writing, printf dies of
+  # SIGPIPE with 141, and the pipeline reports failure for a key that WAS found.
+  # Whether it lies depends on where in the body the first match falls relative
+  # to the pipe buffer, so the same file passed and failed on different days.
+  # A check that reddens at random is worse than no check: it teaches that red
+  # means nothing. Found 2026-10-08, on `V_KERNEL`, read at check-setup.sh:232.
+  # The earlier `S_OK` false alarm had this cause too and was misdiagnosed as a
+  # pattern bug; the pattern was fine both times.
   UNUSED=""
   for k in $REF; do
-    printf '%s' "$BODY" | grep -qE "[$]\{?#?${k}[^A-Z0-9_]" || UNUSED="$UNUSED $k"
+    grep -qE "[$]\{?#?${k}[^A-Z0-9_]" <<< "$BODY" || UNUSED="$UNUSED $k"
   done
   [ -n "$UNUSED" ] && { echo "    НИКТО НЕ ЧИТАЕТ:$UNUSED"; BAD=$((BAD+1)); }
 

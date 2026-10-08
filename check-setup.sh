@@ -39,6 +39,8 @@ ru)
   L_GITID="git: имя и почта"; L_GH="GitHub доступен"; L_NODE="Node.js"
   L_CODE="Редактор (IDE)"; L_EXT="Расширение Claude Code"; L_CLAUDE="Claude Code"
   L_LOGIN="Вход в аккаунт"; L_DISK="Место на диске"
+  L_BROWSER="Браузер из Ubuntu"; V_NOBROWSER="открывать нечем"
+  F_WSLU="нужен пароль взрослого: sudo apt install -y wslu (без него не откроется вход)"
   V_KERNEL="ядро"; V_WSL1="похоже на WSL1:"; V_NOTWSL="это не WSL"
   V_NOTINST="не установлен"; V_NOTSET="не заданы"; V_NORESP="не отвечает"; V_SET="заданы"
   V_OLD="слишком старый"; V_HTTPS="по https"; V_VISIBLE="виден из Ubuntu"
@@ -78,6 +80,8 @@ uk)
   L_GITID="git: ім'я та пошта"; L_GH="GitHub доступний"; L_NODE="Node.js"
   L_CODE="Редактор (IDE)"; L_EXT="Розширення Claude Code"; L_CLAUDE="Claude Code"
   L_LOGIN="Вхід в акаунт"; L_DISK="Місце на диску"
+  L_BROWSER="Браузер з Ubuntu"; V_NOBROWSER="відкривати нічим"
+  F_WSLU="потрібен пароль дорослого: sudo apt install -y wslu (без нього вхід не відкриється)"
   V_KERNEL="ядро"; V_WSL1="схоже на WSL1:"; V_NOTWSL="це не WSL"
   V_NOTINST="не встановлено"; V_NOTSET="не задані"; V_NORESP="не відповідає"; V_SET="задані"
   V_OLD="занадто стара"; V_HTTPS="через https"; V_VISIBLE="видно з Ubuntu"
@@ -117,6 +121,8 @@ de)
   L_GITID="git: Name und E-Mail"; L_GH="GitHub erreichbar"; L_NODE="Node.js"
   L_CODE="Editor (IDE)"; L_EXT="Claude-Code-Erweiterung"; L_CLAUDE="Claude Code"
   L_LOGIN="Angemeldet"; L_DISK="Speicherplatz"
+  L_BROWSER="Browser aus Ubuntu"; V_NOBROWSER="nichts zum Oeffnen da"
+  F_WSLU="Passwort eines Erwachsenen: sudo apt install -y wslu (sonst oeffnet die Anmeldung nicht)"
   V_KERNEL="Kernel"; V_WSL1="sieht nach WSL1 aus:"; V_NOTWSL="das ist kein WSL"
   V_NOTINST="nicht installiert"; V_NOTSET="nicht gesetzt"; V_NORESP="keine Antwort"; V_SET="gesetzt"
   V_OLD="zu alt"; V_HTTPS="über https"; V_VISIBLE="aus Ubuntu sichtbar"
@@ -156,6 +162,8 @@ de)
   L_GITID="git: name and email"; L_GH="GitHub reachable"; L_NODE="Node.js"
   L_CODE="Editor (IDE)"; L_EXT="Claude Code extension"; L_CLAUDE="Claude Code"
   L_LOGIN="Signed in"; L_DISK="Disk space"
+  L_BROWSER="Browser from Ubuntu"; V_NOBROWSER="nothing to open it with"
+  F_WSLU="an adult password is needed: sudo apt install -y wslu (the sign-in cannot open otherwise)"
   V_KERNEL="kernel"; V_WSL1="looks like WSL1:"; V_NOTWSL="this is not WSL"
   V_NOTINST="not installed"; V_NOTSET="not set"; V_NORESP="no response"; V_SET="set"
   V_OLD="too old"; V_HTTPS="over https"; V_VISIBLE="visible from Ubuntu"
@@ -245,6 +253,21 @@ if [ -r /etc/os-release ]; then
   esac
 else
   warn "$L_DISTRO" "$V_UNKNOWN" "$F_DISTRO2"
+fi
+
+# 2.1 A browser reachable from Ubuntu
+# THIS ROW EXISTS BECAUSE TWO SIGN-INS DEPEND ON IT. `gh auth login --web` and
+# `claude` with `/login` both hand a URL to a browser, and a fresh Ubuntu under
+# WSL has none; `wslu` provides `wslview`, which passes the URL to the browser
+# already open in Windows. Measured 2026-10-08 on the conductor's machine:
+# without it the device flow printed its code and never completed, and the only
+# error on screen came from snapd about mount namespaces - naming neither the
+# browser nor the cause. A gate-keeper that looks silently at this costs a
+# participant an evening.
+if command -v wslview >/dev/null 2>&1; then
+  ok "$L_BROWSER" "wslview"
+else
+  bad "$L_BROWSER" "$V_NOBROWSER" "B" "$F_WSLU"
 fi
 
 # 3. git

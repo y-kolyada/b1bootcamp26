@@ -61,6 +61,9 @@ ru)
   L_NODE="Node.js"; L_CLI="Claude Code в терминале"; L_CODE="Редактор"
   L_EXT="Claude Code в редакторе"; L_GH="Отправка на GitHub"; L_GHAUTH="Вход в GitHub"
   L_LOGIN="Вход в Claude"
+  L_BROWSER="Браузер из Ubuntu"
+  W_WSLU="без него вход в GitHub и в Claude не сможет открыть браузер"
+  V_NOBROWSER="открывать нечем"
   W_GIT="хранит историю твоего проекта и позволяет вернуться назад"
   W_GITID="этим именем будут подписаны твои изменения, и его видят все"
   W_NODE="на нём побегут твои проверки"
@@ -77,10 +80,10 @@ ru)
   Q_GITID="Записать ник и почту-заглушку в настройки git?"
   Q_BASHRC="Дописать одну строку в ~/.bashrc, чтобы команды находились?"
   Q_GHAUTH="Войти в GitHub сейчас? Откроется браузер и будет код из восьми знаков."
-  Q_APT="Запустить установку git? Понадобится пароль - позови родителя."
+  Q_APT="Запустить установку? Понадобится пароль - позови родителя."
   A_NO="понятно, не трогаю"
   ROOT_HEAD="ЗДЕСЬ НУЖЕН ВЗРОСЛЫЙ"
-  ROOT_WHY="Эту одну вещь нельзя поставить без пароля администратора."
+  ROOT_WHY="Это нельзя поставить без пароля администратора. Один раз, в самом начале."
   ROOT_WHO="Позови родителя или спроси пароль. Остальное пароля не требует."
   F_NOTWSL="курс идёт в Ubuntu под Windows. В PowerShell: wsl --install -d Ubuntu"
   F_WSL1="в PowerShell от администратора: wsl --set-version Ubuntu 2"
@@ -107,6 +110,9 @@ uk)
   L_NODE="Node.js"; L_CLI="Claude Code у терміналі"; L_CODE="Редактор"
   L_EXT="Claude Code у редакторі"; L_GH="Надсилання на GitHub"; L_GHAUTH="Вхід у GitHub"
   L_LOGIN="Вхід у Claude"
+  L_BROWSER="Браузер з Ubuntu"
+  W_WSLU="без нього вхід у GitHub і в Claude не зможе відкрити браузер"
+  V_NOBROWSER="відкривати нічим"
   W_GIT="зберігає історію твого проєкту і дає повернутися назад"
   W_GITID="цим ім'ям будуть підписані твої зміни, і його бачать усі"
   W_NODE="на ньому працюватимуть твої перевірки"
@@ -123,10 +129,10 @@ uk)
   Q_GITID="Записати нік і пошту-заглушку в налаштування git?"
   Q_BASHRC="Дописати один рядок у ~/.bashrc, щоб команди знаходились?"
   Q_GHAUTH="Увійти в GitHub зараз? Відкриється браузер і буде код із восьми знаків."
-  Q_APT="Запустити встановлення git? Знадобиться пароль - поклич батьків."
+  Q_APT="Запустити встановлення? Знадобиться пароль - поклич батьків."
   A_NO="зрозуміло, не чіпаю"
   ROOT_HEAD="ТУТ ПОТРІБЕН ДОРОСЛИЙ"
-  ROOT_WHY="Цю одну річ не встановити без пароля адміністратора."
+  ROOT_WHY="Це не встановити без пароля адміністратора. Один раз, на початку."
   ROOT_WHO="Поклич батьків або спитай пароль. Решта пароля не потребує."
   F_NOTWSL="курс іде в Ubuntu під Windows. У PowerShell: wsl --install -d Ubuntu"
   F_WSL1="у PowerShell від адміністратора: wsl --set-version Ubuntu 2"
@@ -153,6 +159,9 @@ de)
   L_NODE="Node.js"; L_CLI="Claude Code im Terminal"; L_CODE="Editor"
   L_EXT="Claude Code im Editor"; L_GH="Hochladen zu GitHub"; L_GHAUTH="GitHub-Anmeldung"
   L_LOGIN="Claude-Anmeldung"
+  L_BROWSER="Browser aus Ubuntu"
+  W_WSLU="ohne ihn kann die Anmeldung bei GitHub und Claude keinen Browser oeffnen"
+  V_NOBROWSER="nichts zum Oeffnen da"
   W_GIT="speichert die Geschichte deines Projekts und lässt dich zurückgehen"
   W_GITID="mit diesem Namen werden deine Änderungen unterschrieben, und alle sehen ihn"
   W_NODE="darauf laufen deine Prüfungen"
@@ -169,10 +178,10 @@ de)
   Q_GITID="Nickname und Platzhalter-E-Mail in die git-Einstellungen schreiben?"
   Q_BASHRC="Eine Zeile in ~/.bashrc ergänzen, damit die Befehle gefunden werden?"
   Q_GHAUTH="Jetzt bei GitHub anmelden? Es öffnet sich der Browser mit einem achtstelligen Code."
-  Q_APT="git-Installation starten? Dafür wird ein Passwort gebraucht - hol deine Eltern."
+  Q_APT="Installation starten? Dafür wird ein Passwort gebraucht - hol deine Eltern."
   A_NO="verstanden, ich lasse es"
   ROOT_HEAD="HIER WIRD EIN ERWACHSENER GEBRAUCHT"
-  ROOT_WHY="Diese eine Sache geht nicht ohne Administrator-Passwort."
+  ROOT_WHY="Das geht nicht ohne Administrator-Passwort. Einmal, ganz am Anfang."
   ROOT_WHO="Hol deine Eltern oder frage nach dem Passwort. Alles andere braucht keins."
   F_NOTWSL="der Kurs läuft in Ubuntu unter Windows. In PowerShell: wsl --install -d Ubuntu"
   F_WSL1="in PowerShell als Administrator: wsl --set-version Ubuntu 2"
@@ -199,6 +208,9 @@ de)
   L_NODE="Node.js"; L_CLI="Claude Code in the terminal"; L_CODE="Editor"
   L_EXT="Claude Code in the editor"; L_GH="Uploading to GitHub"; L_GHAUTH="GitHub sign-in"
   L_LOGIN="Claude sign-in"
+  L_BROWSER="Browser from Ubuntu"
+  W_WSLU="without it the GitHub and Claude sign-ins cannot open a browser"
+  V_NOBROWSER="nothing to open it with"
   W_GIT="keeps your project's history and lets you go back"
   W_GITID="your changes are signed with this name, and everyone can see it"
   W_NODE="your checks will run on it"
@@ -215,10 +227,10 @@ de)
   Q_GITID="Write the nickname and a placeholder e-mail into your git settings?"
   Q_BASHRC="Append one line to ~/.bashrc so the commands are found?"
   Q_GHAUTH="Sign in to GitHub now? A browser opens with an eight-character code."
-  Q_APT="Start the git installation? It needs a password - fetch a parent."
+  Q_APT="Start the installation? It needs a password - fetch a parent."
   A_NO="understood, leaving it alone"
   ROOT_HEAD="AN ADULT IS NEEDED HERE"
-  ROOT_WHY="This one thing cannot be installed without an administrator password."
+  ROOT_WHY="This cannot be installed without an administrator password. Once, at the very start."
   ROOT_WHO="Fetch a parent or ask for the password. Nothing else needs one."
   F_NOTWSL="the course runs in Ubuntu under Windows. In PowerShell: wsl --install -d Ubuntu"
   F_WSL1="in PowerShell as administrator: wsl --set-version Ubuntu 2"
@@ -314,21 +326,47 @@ case "$ARCH" in
   *) broke "$L_ARCH" "$ARCH - $V_ARCHBAD" "$F_ARCH" ;;
 esac
 
-# ---------------------------------------------------------------- 2. git
+# ---------------------------------------------------------------- 2. apt: git, wslu
 # THE ONLY STEP THAT CAN NEED A PASSWORD, AND IT IS PRINTED AS A BLOCK.
+#
+# TWO PACKAGES, ONE PASSWORD, ONE ADULT. Asking twice would mean calling a
+# parent twice, so what apt owns is collected and installed in one go.
+#
+# WHY `wslu` IS NOT OPTIONAL HERE. Both sign-ins below hand a URL to a browser:
+# `gh auth login --web` and, later, `claude` with `/login`. A fresh Ubuntu under
+# WSL has no browser to hand it to, and `wslu` is what makes `xdg-open` reach the
+# browser already running in Windows. Found 2026-10-08 on the conductor's own
+# machine: without it the device flow printed its code and never completed, and
+# the only visible error came from snapd about mount namespaces - a message that
+# names neither the browser nor the cause. A participant would have read that as
+# the course being broken.
 if command -v git >/dev/null 2>&1; then
   had "$L_GIT" "$V_VER $(git --version | awk '{print $3}')"
-else
+fi
+if command -v wslview >/dev/null 2>&1; then
+  had "$L_BROWSER" "$V_FOUND"
+fi
+
+NEEDAPT=""
+command -v git     >/dev/null 2>&1 || NEEDAPT="$NEEDAPT git"
+command -v wslview >/dev/null 2>&1 || NEEDAPT="$NEEDAPT wslu"
+
+if [ -n "$NEEDAPT" ]; then
   echo
   echo "  $(y "$ROOT_HEAD")"
   echo "  $ROOT_WHY"
   echo "  $(dim "$ROOT_WHO")"
   echo
-  yours "$L_GIT" "$V_NOTSIGNED" ""
-  why "$W_GIT"
+  case "$NEEDAPT" in *git*)  yours "$L_GIT" "$V_NOTSIGNED" ""; why "$W_GIT" ;; esac
+  case "$NEEDAPT" in *wslu*) yours "$L_BROWSER" "$V_NOBROWSER" ""; why "$W_WSLU" ;; esac
   if ask "$Q_APT"; then
-    runsh "sudo apt-get update && sudo apt-get install -y git"
-    if command -v git >/dev/null 2>&1; then did "$L_GIT" "$V_OK"; LEFT=$((LEFT-1)); fi
+    runsh "sudo apt-get update && sudo apt-get install -y$NEEDAPT"
+    case "$NEEDAPT" in *git*)
+      if command -v git >/dev/null 2>&1; then did "$L_GIT" "$V_OK"; LEFT=$((LEFT-1)); fi ;;
+    esac
+    case "$NEEDAPT" in *wslu*)
+      if command -v wslview >/dev/null 2>&1; then did "$L_BROWSER" "$V_OK"; LEFT=$((LEFT-1)); fi ;;
+    esac
   fi
 fi
 
