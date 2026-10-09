@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# AI Bootcamp - the executable bit, as git recorded it / бит исполнения в индексе git.
+# AI Bootcamp - byte-level properties that travel silently, or do not.
+# / свойства, которые не видно при чтении: бит исполнения и BOM.
 #
 #     tools/check-modes.sh            check the course and the template
 #     tools/check-modes.sh REPO ...   check the named repositories
@@ -18,8 +19,18 @@
 # and certain on the child's machine. That asymmetry is the whole reason this
 # check reads the INDEX and never the filesystem.
 #
-# WHAT IT CAN REDDEN: any *.sh that git holds as 100644. That is exactly the
-# state it was written in, on two repositories at once.
+# WHAT IT CAN REDDEN:
+#   1. any *.sh that git holds as 100644 - the state it was written in;
+#   2. any *.ps1 without a UTF-8 BOM.
+#
+# WHY THE BOM IS HERE, BESIDE THE EXECUTABLE BIT. They are the same class of
+# defect: a property that is invisible when reading the file, that no editor
+# shows, and whose loss produces an error naming something else entirely.
+# Without the BOM, Windows PowerShell 5.1 reads the file as the ANSI code page
+# and the Cyrillic breaks the parse with «Unexpected token» - five errors, none
+# of which mentions encoding. Recorded twice: when the file was written
+# (2026-10-08), and when it was carried to a second host (2026-10-09), where the
+# bytes arrived intact and the marker did not.
 
 set -uo pipefail
 
@@ -32,7 +43,7 @@ r() { printf '\033[31m%s\033[0m' "$1"; }
 g() { printf '\033[32m%s\033[0m' "$1"; }
 
 echo
-echo "  Бит исполнения, как его записал git"
+echo "  Что записал git: бит исполнения и BOM"
 echo "  ----------------------------------------------"
 
 for repo in "${REPOS[@]}"; do
@@ -56,6 +67,20 @@ for repo in "${REPOS[@]}"; do
 
   [ "$n" -eq 0 ] && echo "  $name: НИ ОДНОГО .sh - проверять нечего"
   [ "$n" -gt 0 ] && [ "$BAD" -eq 0 ] && echo "  $name: .sh в индексе - $n, бит на месте у всех"
+
+  # BOM у каждого .ps1: читаем ИЗ GIT, а не с диска - на диске файл может быть
+  # починен локально, а в репозиторий уехать без маркера.
+  while read -r _mode _hash _stage path; do
+    [ -z "${path:-}" ] && continue
+    head=$(git -C "$repo" show ":$path" 2>/dev/null | head -c 3 | od -An -tx1 | tr -d ' \n')
+    if [ "$head" = "efbbbf" ]; then
+      echo "  $name/$path: $(g 'BOM на месте')"
+    else
+      echo "  $name/$path: $(r 'НЕТ BOM') - первые байты: ${head:-пусто}"
+      echo "      -> Windows PowerShell прочитает файл как ANSI и упадёт на кириллице"
+      BAD=$((BAD+1))
+    fi
+  done < <(git -C "$repo" ls-files -s -- '*.ps1')
 done
 
 echo "  ----------------------------------------------"

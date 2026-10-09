@@ -21,6 +21,19 @@
 # whole switch fails to parse. Measured 2026-10-08: five parse errors, no
 # mention of encoding among them.
 #
+# ВТОРОЙ СЛУЧАЙ, 2026-10-09. Файл перенесли на другой хост, и там он упал с
+# теми же пятью ошибками: в тексте было видно `ÑƒÑÑ‚Ð°Ð½Ð¾Ð²ÐºÐ°` - это UTF-8,
+# прочитанный как ANSI. Сами байты доехали целыми, а BOM - нет: его теряют
+# редакторы, буфер обмена и Set-Content, но не cp и не скачивание.
+#
+# ЕСЛИ НУЖЕН ЭТОТ ФАЙЛ НА WINDOWS - НЕ КОПИРУЙ ЕГО, А СКАЧАЙ:
+#   Invoke-WebRequest -UseBasicParsing -OutFile setup-windows.ps1 `
+#     -Uri https://raw.githubusercontent.com/<github-owner>/b1bootcamp26/main/setup-windows.ps1
+# Проверить: Format-Hex -Path .\setup-windows.ps1 -Count 3 -> EF BB BF.
+#
+# В репозитории это стережёт tools/check-modes.sh: он читает первые три байта
+# из git, а не с диска, потому что локально файл может быть уже починен.
+
 param([ValidateSet('en','ru','uk','de')][string]$Lang = 'en')
 
 $ErrorActionPreference = 'Continue'
