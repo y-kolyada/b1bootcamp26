@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Bootcamp: как мы делали курс</title>
+<style>
+  :root {
+    --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* светлая тема - чертёж на холодной бумаге */
+    --paper: #E7ECEE;
+    --panel: #F1F5F6;
+    --panel-2: #DCE4E7;
+    --ink: #17222B;
+    --ink-2: #3C4E59;
+    --muted: #64757F;
+    --line: #C2CFD5;
+    --line-strong: #9FB0B9;
+    --accent: #B07A2E;
+    --accent-ink: #855717;
+    --accent-soft: rgba(176,122,46,0.12);
+    --steel: #3B6C79;
+    --steel-soft: rgba(59,108,121,0.12);
+    --grid: rgba(23,34,43,0.045);
+    --shadow: 0 1px 0 rgba(23,34,43,0.04), 0 18px 40px -24px rgba(23,34,43,0.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E141A;
+      --panel: #161F27;
+      --panel-2: #1E2A33;
+      --ink: #E8EEF1;
+      --ink-2: #B0C0C9;
+      --muted: #7E909B;
+      --line: #26333D;
+      --line-strong: #3A4B56;
+      --accent: #D69B4A;
+      --accent-ink: #E6B368;
+      --accent-soft: rgba(214,155,74,0.14);
+      --steel: #5BA2B2;
+      --steel-soft: rgba(91,162,178,0.14);
+      --grid: rgba(232,238,241,0.045);
+      --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 22px 50px -26px rgba(0,0,0,0.7);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #E7ECEE; --panel: #F1F5F6; --panel-2: #DCE4E7; --ink: #17222B; --ink-2: #3C4E59;
+    --muted: #64757F; --line: #C2CFD5; --line-strong: #9FB0B9; --accent: #B07A2E; --accent-ink: #855717;
+    --accent-soft: rgba(176,122,46,0.12); --steel: #3B6C79; --steel-soft: rgba(59,108,121,0.12);
+    --grid: rgba(23,34,43,0.045); --shadow: 0 1px 0 rgba(23,34,43,0.04), 0 18px 40px -24px rgba(23,34,43,0.35);
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E141A; --panel: #161F27; --panel-2: #1E2A33; --ink: #E8EEF1; --ink-2: #B0C0C9;
+    --muted: #7E909B; --line: #26333D; --line-strong: #3A4B56; --accent: #D69B4A; --accent-ink: #E6B368;
+    --accent-soft: rgba(214,155,74,0.14); --steel: #5BA2B2; --steel-soft: rgba(91,162,178,0.14);
+    --grid: rgba(232,238,241,0.045); --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 22px 50px -26px rgba(0,0,0,0.7);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  .blueprint {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  /* ---------- обрамление ---------- */
+  .titleblock {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
+    padding: 14px clamp(18px, 4vw, 54px);
+    font-family: var(--font-mono);
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  .titleblock .brand { color: var(--ink); font-weight: 600; }
+  .titleblock .brand b { color: var(--accent-ink); }
+  .titleblock .section { color: var(--ink-2); text-align: center; flex: 1; }
+  .titleblock .idx { color: var(--ink-2); display: flex; gap: 10px; align-items: center; }
+  .titleblock .idx b { color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .tiermark { border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px 9px; font-size: 10.5px; color: var(--steel); }
+
+  .footbar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 6;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 12px clamp(18px, 4vw, 54px);
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(6px);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .dots { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; max-width: 46vw; }
+  .dots button {
+    width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--line-strong);
+    background: transparent; padding: 0; cursor: pointer; transition: all .2s;
+  }
+  .dots button[aria-current="true"] { background: var(--accent); border-color: var(--accent); transform: scale(1.15); }
+  .dots button.optional { border-style: dashed; }
+  .hint { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hint kbd {
+    font-family: var(--font-mono); background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 6px; color: var(--ink-2); font-size: 10.5px;
+  }
+  .foot-actions { display: flex; gap: 8px; }
+  .foot-actions button {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink-2);
+    padding: 4px 9px; border-radius: 5px; cursor: pointer;
+  }
+  .foot-actions button:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .foot-actions button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+
+  /* ---------- сцена и слайды ---------- */
+  .stage { position: fixed; inset: 0; z-index: 1; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(64px, 8vh, 92px) clamp(20px, 6vw, 88px);
+    opacity: 0; visibility: hidden; transform: translateY(14px);
+    transition: opacity .38s ease, transform .38s ease, visibility .38s;
+    overflow-y: auto;
+  }
+  .slide.is-active { opacity: 1; visibility: visible; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: opacity .001s; transform: none; }
+  }
+  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: clamp(11px, 1.1vw, 13px);
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-ink);
+    display: inline-flex; align-items: center; gap: 10px; margin: 0 0 16px;
+  }
+  .eyebrow::before { content: ""; width: 26px; height: 2px; background: var(--accent); display: inline-block; }
+  .eyebrow.steel { color: var(--steel); }
+  .eyebrow.steel::before { background: var(--steel); }
+
+  h1.title {
+    font-family: var(--font-mono); font-weight: 700;
+    font-size: clamp(30px, 5.6vw, 72px); line-height: 1.0; letter-spacing: -0.01em;
+    margin: 0; text-wrap: balance; color: var(--ink);
+  }
+  h2.head {
+    font-family: var(--font-mono); font-weight: 700;
+    font-size: clamp(22px, 3.5vw, 44px); line-height: 1.06; letter-spacing: -0.01em;
+    margin: 0 0 8px; text-wrap: balance; color: var(--ink);
+  }
+  h2.head .brass { color: var(--accent-ink); }
+  .lede { font-size: clamp(15px, 1.7vw, 19.5px); color: var(--ink-2); max-width: 66ch; line-height: 1.5; margin: 12px 0 0; }
+  p { line-height: 1.55; }
+  strong { color: var(--ink); font-weight: 650; }
+  .mono { font-family: var(--font-mono); }
+
+  /* строка «зачем» - один отказ, который это предотвращает */
+  .why {
+    margin: 14px 0 0; padding: 10px 14px;
+    border-left: 3px solid var(--steel); background: var(--steel-soft);
+    border-radius: 0 8px 8px 0;
+    font-family: var(--font-mono); font-size: clamp(12.5px, 1.3vw, 14.5px);
+    color: var(--ink); line-height: 1.5; max-width: 88ch;
+  }
+  .why b { color: var(--steel); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.82em; }
+
+  /* список тезисов */
+  .points { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 13px; max-width: 80ch; }
+  .points > li {
+    position: relative; padding-left: 28px; font-size: clamp(14px, 1.45vw, 17px);
+    color: var(--ink-2); line-height: 1.5;
+  }
+  .points > li::before {
+    content: ""; position: absolute; left: 0; top: 0.62em; width: 12px; height: 2px; background: var(--accent);
+  }
+  .points > li b, .points > li strong { color: var(--ink); }
+
+  /* карточки */
+  .cols { display: grid; gap: 16px; margin-top: 22px; }
+  .cols.three { grid-template-columns: repeat(3, 1fr); }
+  .cols.two { grid-template-columns: repeat(2, 1fr); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: .85; }
+  .card.steel::before { background: var(--steel); }
+  .card .k {
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent-ink); margin: 0 0 6px;
+  }
+  .card.steel .k { color: var(--steel); }
+  .card h3 { font-family: var(--font-mono); font-size: clamp(15px, 1.65vw, 18.5px); margin: 0 0 8px; color: var(--ink); letter-spacing: -0.01em; }
+  .card p { margin: 0; font-size: clamp(13px, 1.32vw, 14.8px); color: var(--ink-2); line-height: 1.5; }
+  .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .card .tags span {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2);
+    padding: 2px 8px; border-radius: 999px;
+  }
+
+  /* плитки с числами */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  .kpis.three { grid-template-columns: repeat(3, 1fr); }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px 13px; }
+  .kpi .num {
+    font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums;
+    font-size: clamp(23px, 3.5vw, 40px); line-height: 1; color: var(--ink); letter-spacing: -0.02em;
+    display: flex; align-items: baseline; gap: 5px;
+  }
+  .kpi .num u { text-decoration: none; color: var(--accent-ink); font-size: 0.4em; letter-spacing: 0.02em; }
+  .kpi .lbl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+
+  /* вырезка кода со своим адресом */
+  .excerpt { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); background: var(--panel); }
+  .excerpt .srcbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2);
+    font-family: var(--font-mono); font-size: 13px; letter-spacing: 0.04em; color: var(--muted);
+  }
+  .excerpt .srcbar b { color: var(--accent-ink); font-weight: 600; }
+  .excerpt .srcbar .verify { color: var(--steel); text-transform: none; letter-spacing: 0.02em; }
+  .excerpt pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    font-family: var(--font-mono); font-size: clamp(14px, 1.45vw, 17.5px); line-height: 1.5; color: var(--ink);
+  }
+  .excerpt pre .c { color: var(--muted); }
+  .excerpt pre .s { color: var(--steel); }
+  .excerpt pre .a { color: var(--accent-ink); }
+  .excerpt.tight pre { font-size: clamp(10.8px, 1.05vw, 12.6px); }
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; align-items: start; }
+  .two-up .excerpt { margin-top: 0; }
+
+  /* таблица */
+  table.grid { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: clamp(12.5px, 1.3vw, 15px); }
+  table.grid th, table.grid td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); color: var(--ink-2); }
+  table.grid th { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  table.grid td.m, table.grid th.m { font-family: var(--font-mono); }
+  table.grid td b { color: var(--ink); }
+  table.grid td .a { color: var(--accent-ink); font-family: var(--font-mono); }
+  table.grid tr:last-child td { border-bottom: none; }
+  table.grid.compact th, table.grid.compact td { padding: 6px 10px; font-size: clamp(11.5px, 1.2vw, 13.5px); }
+
+  /* поток */
+  .hscroll { overflow-x: auto; padding-bottom: 6px; margin-top: 20px; }
+  .flow { display: flex; align-items: stretch; gap: 0; min-width: min-content; }
+  .node {
+    flex: 0 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 13px; min-width: 112px; text-align: center; box-shadow: var(--shadow);
+  }
+  .node .n-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .node .n-v { font-family: var(--font-mono); font-weight: 650; font-size: 12.5px; color: var(--ink); margin-top: 4px; }
+  .node.accent { border-color: var(--accent); }
+  .node.accent .n-v { color: var(--accent-ink); }
+  .arrow { flex: 0 0 auto; align-self: center; width: 24px; height: 2px; background: var(--line-strong); position: relative; }
+  .arrow::after { content: ""; position: absolute; right: 0; top: -3px; border: 4px solid transparent; border-left-color: var(--line-strong); }
+
+  /* цитата */
+  .pull { margin-top: 22px; border-left: 3px solid var(--accent); padding: 8px 0 8px 18px; max-width: 70ch; }
+  .pull p { font-family: var(--font-mono); font-size: clamp(15px, 1.85vw, 22px); line-height: 1.32; color: var(--ink); margin: 0; letter-spacing: -0.01em; }
+  .pull cite { display: block; margin-top: 9px; font-style: normal; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  /* титульный */
+  .title-slide .wrap { max-width: 1180px; }
+  .title-meta { display: flex; flex-wrap: wrap; gap: 9px 20px; margin-top: 22px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; }
+  .title-meta span b { color: var(--ink-2); }
+  .pivot { margin-top: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 18px 20px; box-shadow: var(--shadow); max-width: 920px; }
+  .pivot .q { font-family: var(--font-mono); font-size: 13.5px; color: var(--ink); letter-spacing: 0.01em; margin: 0 0 12px; }
+  .pivot .q b { color: var(--accent-ink); }
+  .pivot-toggle { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pivot-toggle button {
+    flex: 1 1 230px; text-align: left; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+    color: var(--ink-2); transition: all .18s; font-family: inherit;
+  }
+  .pivot-toggle button .t { font-family: var(--font-mono); font-weight: 650; color: var(--ink); font-size: 14.5px; display: block; }
+  .pivot-toggle button .d { font-size: 12px; margin-top: 4px; display: block; line-height: 1.4; }
+  .pivot-toggle button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+  .pivot-toggle button[aria-pressed="true"] .t { color: var(--accent-ink); }
+  .pivot-plan { margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); letter-spacing: 0.01em; min-height: 1.4em; }
+  .pivot-plan b { color: var(--accent-ink); }
+
+  /* карта демо */
+  .maplist { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-top: 18px; }
+  .maplist .row { display: flex; gap: 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .maplist .row code { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent-ink); white-space: nowrap; }
+  .maplist .row span { font-size: 12.5px; color: var(--ink-2); }
+  .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 22px; margin-top: 16px; }
+  .qa { border-left: 3px solid var(--steel); padding-left: 13px; }
+  .qa .q { font-family: var(--font-mono); font-size: 13px; color: var(--ink); margin: 0 0 4px; }
+  .qa .a { font-size: 12.5px; color: var(--ink-2); margin: 0; line-height: 1.45; }
+
+  /* ящик с заметками */
+  .drawer {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+    transform: translateY(102%); transition: transform .34s ease;
+    background: var(--panel); border-top: 2px solid var(--accent);
+    box-shadow: 0 -18px 44px -22px rgba(0,0,0,0.5);
+    max-height: 64vh; display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: none; }
+  .drawer .dhead {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 12px clamp(18px,4vw,54px); border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink);
+  }
+  .drawer .dhead button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2); border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; }
+  .drawer .dbody { padding: 16px clamp(18px,4vw,54px) 26px; overflow-y: auto; }
+  .drawer .dbody .timing { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent-ink); margin: 0 0 12px; letter-spacing: 0.02em; }
+  .drawer .dbody p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.62; color: var(--ink-2); max-width: 92ch; }
+  .drawer .dbody p strong { color: var(--ink); }
+  .drawer .dbody ul { margin: 0 0 10px; padding-left: 20px; max-width: 92ch; }
+  .drawer .dbody li { font-size: 14px; line-height: 1.55; color: var(--ink-2); margin-bottom: 5px; }
+  .drawer .dbody code { font-family: var(--font-mono); font-size: 0.92em; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; color: var(--ink); }
+  .drawer .dbody .cockpit { border-left: 3px solid var(--steel); padding-left: 14px; margin: 0 0 10px; }
+  .notes { display: none; }
+
+  .help-toast {
+    position: fixed; z-index: 9; left: 50%; bottom: 74px; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
+    padding: 9px 16px; border-radius: 8px; opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .help-toast.show { opacity: 0.95; }
+
+  .slide[data-tier="ext"] .eyebrow::after {
+    content: "резерв"; font-size: 9.5px; letter-spacing: 0.1em;
+    border: 1px dashed var(--line-strong); border-radius: 999px; padding: 1px 7px; color: var(--steel);
+  }
+
+  @media (max-width: 900px) {
+    .cols.three, .cols.two, .kpis, .kpis.three, .maplist, .qa-grid, .two-up { grid-template-columns: 1fr; }
+    .kpis, .kpis.three { grid-template-columns: 1fr 1fr; }
+    .hint { display: none; }
+    .dots { max-width: 40vw; }
+  }
+
+  .chainrow { margin-top: 14px; }
+  .chainrow > .k { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+  .excerpt pre.tight { font-size: clamp(12.5px, 1.2vw, 15px); }
+  .ladder { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 18px; align-items: start; }
+  .ladder .card:nth-child(1) { margin-top: 84px; }
+  .ladder .card:nth-child(2) { margin-top: 56px; }
+  .ladder .card:nth-child(3) { margin-top: 28px; }
+  .ladder .n { font-family: var(--font-mono); font-size: 30px; line-height: 1; color: var(--accent); margin: 0 0 6px; }
+  .ladder .card.steel .n { color: var(--steel); }
+  .ladder .tools { font-size: 13px; color: var(--muted); }
+  .ladder .g { margin-top: 10px; font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+  @media (max-width: 900px) { .ladder { grid-template-columns: 1fr; } .ladder .card { margin-top: 0 !important; } }
+  .excerpt pre.graph { font-size: clamp(11.5px, 1.08vw, 14px); line-height: 1.36; padding: 10px 16px; }
+
+  .quotes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 18px; margin-top: 16px; }
+  .quotes .q { background: var(--panel); border-left: 3px solid var(--accent); padding: 10px 14px; font-size: clamp(14px, 1.35vw, 17px); }
+  .quotes .q b { display: block; font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
+  .quotes .q.steel { border-left-color: var(--steel); }
+  .prompt { font-family: var(--font-mono); font-size: clamp(13.5px, 1.3vw, 16px); color: var(--ink); background: var(--panel);
+            border-left: 3px solid var(--accent); padding: 12px 16px; margin: 12px 0 4px; line-height: 1.5; }
+  .prompt .who { display: block; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .out { font-family: var(--font-mono); font-size: clamp(13px, 1.25vw, 15.5px); background: var(--panel-2); padding: 10px 14px; border-radius: 6px; margin-top: 8px; }
+  .out .g { color: #2e8b57; } .out .r { color: #c0392b; }
+  @media (max-width: 900px) { .quotes { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="blueprint" aria-hidden="true"></div>
+
+<header class="titleblock">
+  <div class="brand">AI <b>//</b> BOOTCAMP</div>
+  <div class="section" id="sectionLabel">О докладе</div>
+  <div class="idx"><span class="tiermark" id="tierMark">ЯДРО</span><span><b id="idxNow">01</b> / <span id="idxTotal">8</span></span></div>
+</header>
+
+<main class="stage" id="stage">
+
+  
+  <section class="slide title-slide is-active" data-section="О докладе" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">AI Bootcamp &middot; ИИ исполняет - ты решаешь</p>
+      <h1 class="title">Как мы делали этот курс<br>и <span class="brass">как его проводили</span></h1>
+      <p class="lede">Восемь недель вы работали с ИИ по одному правилу: сначала задание, потом просьба, потом проверка. Тренер делал свою работу по тому же правилу - сайт курса собран так же, как ваши сайты.</p>
+      <div class="title-meta">
+        <span><b>ЗАНЯТИЯ:</b> 8 &middot; страница, задание и запись у каждого</span>
+        <span><b>СТРАНИЦЫ:</b> 80 на 8 языках</span>
+        <span><b>ПРОВЕРКА:</b> 14 предикатов, 77 строк ДА</span>
+        <span><b>КОММИТЫ:</b> 73 сайта и 29 программы</span>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="timing">ТИТУЛ &middot; ~30 секунд.</p>
+      <p><strong>Одна фраза:</strong> «Всё, чего мы требовали от вас, тренер делал сам. Покажу, как это выглядело с нашей стороны, и что пошло не по плану».</p>
+      <p>Клавиши: <code>&rarr;</code> дальше, <code>N</code> заметки, <code>O</code> обзор, <code>C</code> резерв, <code>T</code> тема.</p>
+      <div class="cockpit">
+        <p><strong>Источники, замер 2026-11-28:</strong> сайт <code>b1bootcamp26-site</code> на <code>9ea7ee1</code>, программа <code>b1bootcamp26</code> на <code>74cf2ee</code>. Коммиты - <code>git rev-list --count HEAD</code>: 73 и 29. Страницы и предикаты - вывод <code>./check.sh</code>: «все 80 страниц для 8 языков», строк ДА 77, предикаты 1-14.</p>
+        <p><strong>Не говорить</strong> имён детей, названий их сайтов и кто что сделал. Не продавать: курс бесплатный, тренеры - волонтёры.</p>
+      </div>
+    </div>
+  </section>
+  <section class="slide" data-section="1 &middot; Тройка" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">01 &middot; Те же три вещи</p>
+      <h2 class="head">Задание, запись, проверка -<br><span class="brass">и у тренера тоже</span>.</h2>
+      <div class="hscroll"><div class="flow"><div class="node accent"><div class="n-k">до работы</div><div class="n-v">zadanie-N.md: три предиката</div></div><div class="arrow"></div><div class="node"><div class="n-k">работа</div><div class="n-v">ИИ делает страницу</div></div><div class="arrow"></div><div class="node"><div class="n-k">после</div><div class="n-v">zapis-N.md: что вышло</div></div><div class="arrow"></div><div class="node"><div class="n-k">проверка</div><div class="n-v">./check.sh: ДА или НЕТ</div></div><div class="arrow"></div><div class="node accent"><div class="n-k">решение</div><div class="n-v">принять или вернуть</div></div></div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="num">8 + 8</div><div class="lbl">заданий и записей сайта курса, по паре на занятие</div></div>
+        <div class="kpi"><div class="num">«настоящий»</div><div class="lbl">каждое задание на сайте говорит: «Этот файл - настоящий, а не пример»</div></div>
+      </div>
+      <p class="why"><b>Зачем</b> &nbsp;Пример, которому учитель сам не следует, ничему не учит. Внизу каждой страницы занятия - ссылки на её задание и запись: можно проверить, что мы делали так же.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 1 &middot; ~1 минута.</p>
+      <p><strong>Показать:</strong> внизу любой страницы занятия ссылки «Её задание» и «Что получилось на самом деле».</p>
+      <p><strong>Сказать:</strong> «Когда вы писали zadanie-4.md, я в тот же день писал своё. По нему ИИ делал страницу, которую вы читали».</p>
+      <div class="cockpit"><p><strong>Источники:</strong> <code>zadanie-1.md</code> ... <code>zadanie-8.md</code>, <code>zapis-1.md</code> ... <code>zapis-8.md</code> в корне сайта; предикат 12 <code>check.sh</code> держит, что у каждого занятия есть все три.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="2 &middot; Проверка" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow steel">02 &middot; Проверка сайта курса</p>
+      <h2 class="head">Наша проверка <span class="brass">росла</span>,<br>и она тоже врала.</h2>
+      <div class="cols three">
+        <div class="card"><p class="k">росла</p><h3>14 предикатов</h3><p>Каждое занятие добавляло строки, старые не удалялись. Сейчас 327 строк и 77 ответов ДА на каждый запуск.</p></div>
+        <div class="card"><p class="k">краснела</p><h3>Запись забыта</h3><p>Предикат 12 краснел снова и снова на одном месте: страница готова, а записи нет. Проверка помнила про запись за всех.</p></div>
+        <div class="card steel"><p class="k">врала</p><h3>Кнопка в никуда</h3><p>Кнопка «свернуть всё» могла вести на чужую страницу, а проверка была зелёной: она искала слово, а не ссылку. Нашли перед занятием 7.</p></div>
+      </div>
+      <p class="why"><b>То же, что у вас</b> &nbsp;Занятие 7 было про зелёное, которое ничего не доказывает. Сначала мы нашли такую дыру у себя, потом сделали про это занятие.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 2 &middot; ~1,5 минуты.</p>
+      <p><strong>Сказать:</strong> «Проверка, которая ни разу не была красной, - ещё не проверка. Наша была красной много раз, и один раз - зелёной там, где не должна».</p>
+      <div class="cockpit"><p><strong>Источники:</strong> <code>wc -l check.sh</code> = 327; <code>./check.sh | grep -c ДА</code> = 77. Предикат 12 - «Красный момент» в <code>zapis-7.md</code>. Дыра предиката 8 - комментарий в <code>check.sh</code> «ДЫРА, НАЙДЕННАЯ 24 НОЯБРЯ ПРОГОНОМ ПРОМПТОВ ЗАНЯТИЯ 7».</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="3 &middot; Возвраты" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">03 &middot; Возврат</p>
+      <h2 class="head">Тренер тоже <span class="brass">возвращал работу ИИ</span>.</h2>
+      <div class="quotes">
+        <div class="q"><b>занятие 5</b>«Зачем ребёнку набирать это руками?»</div>
+        <div class="q"><b>занятие 6</b>«Сайт - универсальный курс, а не страница одной группы».</div>
+        <div class="q steel"><b>занятие 7</b>«Ты сама могла проверить промпты, запустив субагента. В чём проблема?»</div>
+        <div class="q steel"><b>коммиты</b>«Не пиши в коммите своё соавторство. Ты исполнитель, я архитектор».</div>
+      </div>
+      <p class="why"><b>Как у вас</b> &nbsp;Каждый возврат записан в zapis-N.md: что вернули и почему. ИИ не обижается и не спорит, он переделывает. Решает тот, кто поставил задание.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 3 &middot; ~1,5 минуты.</p>
+      <p><strong>Сказать:</strong> «Возврат - не ссора и не провал. Это обычная работа: назвал, что не так, получил исправленное».</p>
+      <p><strong>Можно добавить:</strong> про соавторство - история коммитов переписана, строка «соавтор ИИ» убрана из всех коммитов сайта и программы.</p>
+      <div class="cockpit"><p><strong>Источники:</strong> «Зачем ребёнку набирать это руками?» - <code>zapis-5.md</code>; «Возврат: сайт - универсальный курс» - <code>zapis-6.md</code>; «Ты сама могла...» - <code>zapis-7.md</code>; соавторство - слова тренера 2026-11-24, в записи - раздел «Приёмка» <code>zapis-7.md</code>.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="4 &middot; Субагент" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow steel">04 &middot; Первый ученик</p>
+      <h2 class="head">Прежде чем промпт попадал к вам,<br>его <span class="brass">проходил субагент</span>.</h2>
+      <div class="hscroll"><div class="flow"><div class="node accent"><div class="n-k">субагент</div><div class="n-v">играет агента ученика</div></div><div class="arrow"></div><div class="node"><div class="n-k">учебный сайт</div><div class="n-v">викторина, ник kot-geo</div></div><div class="arrow"></div><div class="node"><div class="n-k">промпты</div><div class="n-v">слово в слово со страницы</div></div><div class="arrow"></div><div class="node"><div class="n-k">отчёт</div><div class="n-v">где слабый агент ошибётся</div></div></div></div>
+      <div class="kpis">
+        <div class="kpi"><div class="num">2 + 4</div><div class="lbl">прогона промптов занятия 7 и прогона ворот deploy.sh</div></div>
+        <div class="kpi"><div class="num">2</div><div class="lbl">прогона деки сдачи: первый нашёл десять мест, второй - дыру в испытании</div></div>
+      </div>
+      <p class="why"><b>Зачем</b> &nbsp;Ошибку в промпте дешевле найти у субагента, чем у десяти учеников на занятии. Прогон идёт на модели попроще: так дешевле и ближе к тому, что стоит у вас.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 4 &middot; ~1 минута.</p>
+      <p><strong>Сказать:</strong> «Субагент - это ещё один ИИ, которому мы даём роль. Здесь роль - ваш агент на вашем сайте».</p>
+      <p><strong>Подробности в резерве:</strong> слайды «Ворота» и «Испытание».</p>
+      <div class="cockpit"><p><strong>Источники:</strong> разделы «Прогон» в <code>zapis-7.md</code> и <code>zapis-8.md</code>. Модель прогонов - Sonnet.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="5 &middot; Не по плану" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">05 &middot; Что пошло не по плану</p>
+      <h2 class="head">Занятие 6 не получилось -<br>и из этого <span class="brass">выросло занятие 7</span>.</h2>
+      <div class="cols three">
+        <div class="card"><p class="k">что случилось</p><h3>Не все смогли</h3><p>Кого-то не было, у кого-то кончился недельный лимит, кто-то не смог войти без родителя. Обмен в парах не сложился.</p></div>
+        <div class="card"><p class="k">что увидели</p><h3>Проверку переписывали</h3><p>Проверку не наращивали, а писали заново под одно задание. Старые проверки пропадали.</p></div>
+        <div class="card steel"><p class="k">чья ошибка</p><h3>Наш промпт</h3><p>Промпт занятия 4 просил «ровно мои предикаты и ничего больше». В него добавлено правило: старые проверки не удаляй.</p></div>
+      </div>
+      <p class="why"><b>Вывод</b> &nbsp;Так занятие 7 стало про проверку, которая помнит все задания. Программа - это план, а курс - то, что получилось с живыми людьми.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 5 &middot; ~1,5 минуты.</p>
+      <p><strong>Сказать честно:</strong> «Когда у вас не получалось, мы искали причину сначала у себя. Нашли её в собственном промпте».</p>
+      <p><strong>Не называть</strong>, кто отсутствовал и у кого что кончилось.</p>
+      <div class="cockpit"><p><strong>Источники:</strong> «Сначала - откуда взялось это задание» в <code>zapis-7.md</code>; правило 6 в промпте <code>04.html#min-3</code>; расхождение с программой - резерв «Программа».</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="6 &middot; Контекст" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow steel">06 &middot; Что сработало лучше, чем ждали</p>
+      <h2 class="head">Репозиторий помнит,<br>а сайт курса читают <span class="brass">ваши агенты</span>.</h2>
+      <div class="prompt"><span class="who">новичок в чужой команде</span>Меня включили в команду разработки сайта. Ознакомься с этим сайтом и скажи, на каком задании остановилась разработка.</div>
+      <div class="prompt"><span class="who">самый сильный промпт занятия 7</span>Ознакомься с требованиями к заданиям на сайте курса. Дай мне предложение по следующему шагу.</div>
+      <p class="why"><b>Почему это работает</b> &nbsp;Задания и записи - память проекта: агенту хватает прочитать их, чтобы понять, где остановились. А сайт курса написан так, что его понимают и люди, и их агенты.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 6 &middot; ~1,5 минуты.</p>
+      <p><strong>Сказать:</strong> «Мы делали сайт для вас, а оказалось, что он понятен и вашим агентам. Агент прочитал задания курса и сам поставил вам следующее задание».</p>
+      <p><strong>Связать с занятием 7:</strong> «что было, помнит репозиторий» - поэтому новой беседе не нужна старая.</p>
+      <div class="cockpit"><p><strong>Источники:</strong> промпты тренера на занятии 7, 2026-11-28; адрес сайта курса в промпте - <code>y-kolyada.github.io/b1bootcamp26-site</code>. Этот промпт теперь есть на <code>08.html#vhod</code>.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="7 &middot; Дальше" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">07 &middot; Что дальше</p>
+      <h2 class="head">Курс заканчивается,<br><span class="brass">репозиторий - нет</span>.</h2>
+      <div class="cols three">
+        <div class="card"><p class="k">у тебя есть</p><h3>Свой сайт и своя проверка</h3><p>Репозиторий, сайт в интернете, проверка, которая помнит все задания, и дека о том, что ты сделал и как.</p></div>
+        <div class="card"><p class="k">следующий шаг</p><h3>zadanie-9.md</h3><p>Новая функция с тремя предикатами. Тренера рядом нет, а предикаты скажут «да» или «нет» не хуже него.</p></div>
+        <div class="card steel"><p class="k">главное</p><h3>Решаешь ты</h3><p>ИИ исполняет быстро и много. Что считать сделанным, решает тот, кто написал задание до работы.</p></div>
+      </div>
+      <p class="why"><b>Одна строка с собой</b> &nbsp;Сначала задание, потом просьба, потом проверка - и решаешь ты.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 7 &middot; ~1 минута. Последний слайд ядра.</p>
+      <p><strong>Закончить словами:</strong> «Спасибо за восемь суббот. ИИ исполняет - вы решаете».</p>
+      <p><strong>Без предложений</strong> платного продолжения: курс бесплатный.</p>
+      <p>Вопросы - клавиша <code>C</code> открывает резерв.</p>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Испытание" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">Резерв &middot; испытание, которое ничего не испытало</p>
+      <h2 class="head">Ссылки нет,<br>а проверка <span class="brass">зелёная</span>.</h2>
+      <p class="lede">Второй прогон деки сдачи. Адрес репозитория стоял в деке дважды: в ссылке и в тексте. Агент убрал одно вхождение и запустил проверку.</p>
+      <div class="out">8.3 в деке есть ссылка на мой репозиторий &nbsp;<span class="g">ДА</span> &nbsp;&middot;&nbsp; <span class="g">ЗЕЛЁНОЕ</span></div>
+      <div class="out">адрес убран везде: 8.3 <span class="r">НЕТ</span> &nbsp;&middot;&nbsp; <span class="r">КРАСНОЕ</span> &nbsp;&rarr;&nbsp; после git checkout <span class="g">ЗЕЛЁНОЕ</span></div>
+      <p class="why"><b>Урок занятия 7, ещё раз</b> &nbsp;Испытание тоже можно провести так, что оно ничего не проверит. Нашёл это субагент до вас, а не вы на занятии. Промпт теперь велит убрать адрес «везде, где он есть».</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «а субагент правда что-то находит?»</p>
+      <div class="cockpit"><p><strong>Источники:</strong> «Второй прогон нашёл дыру в испытании» в <code>zapis-8.md</code>; промпт <code>08.html#min-3</code>.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Ворота" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow">Резерв &middot; ворота deploy.sh</p>
+      <h2 class="head">Четыре прогона ворот -<br><span class="brass">четыре находки</span>.</h2>
+      <div class="quotes">
+        <div class="q"><b>прогон 1</b>Скрипт не закоммичен, и откат убрал сам скрипт вместо поломки.</div>
+        <div class="q"><b>прогон 2</b>Нет свежего main с GitHub: локальный main уходил вперёд.</div>
+        <div class="q steel"><b>прогон 3</b>Русское имя переменной: bash его не понимает.</div>
+        <div class="q steel"><b>прогон 4</b>На красном вывод проверки был спрятан: не видно, что сломано.</div>
+      </div>
+      <p class="why"><b>Итог</b> &nbsp;Красное не публикуется. Но ворота ручные: обычный git push их обходит, и страница говорит это прямо.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «а что такое ворота выпуска?»</p>
+      <div class="cockpit"><p><strong>Источники:</strong> «Ворота прогонялись четыре раза» в <code>zapis-7.md</code>; шаг <code>07.html#max-1</code>.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Цена" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">Резерв &middot; цена вопроса - и для нас</p>
+      <h2 class="head"><span class="brass">96%</span> - это перечитывание.</h2>
+      <div class="kpis">
+        <div class="kpi"><div class="num">54 млн</div><div class="lbl">токенов в беседах сайта курса, 13-28 ноября</div></div>
+        <div class="kpi"><div class="num">96%</div><div class="lbl">из них - повторное чтение уже прочитанного</div></div>
+        <div class="kpi"><div class="num">4%</div><div class="lbl">недельного лимита за день доводки занятия 7 с шестью прогонами</div></div>
+      </div>
+      <p class="why"><b>То, что вы слышали на занятии 7</b> &nbsp;Агент с каждым сообщением перечитывает всю беседу. Поэтому одно задание - одна беседа, а работа, которую может сделать скрипт, не должна каждый раз стоить просьбы.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «а сколько это стоит?»</p>
+      <p><strong>Честно о границе замера:</strong> посчитаны только беседы, начатые из папки сайта курса, с 13 ноября. Раньше сайт строился из других бесед, и они сюда не вошли.</p>
+      <div class="cockpit"><p><strong>Источники:</strong> транскрипты <code>~/.claude/projects/*b1bootcamp26*</code>, каждое сообщение один раз: 54,1 млн токенов, из них чтение кэша 52,0 млн; прогоны на Sonnet - 1,8 млн. 4% - экран <code>/usage</code> тренера в конце дня 24 ноября, после пополнения лимита утром.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Программа" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow">Резерв &middot; программа против факта</p>
+      <h2 class="head">План держали, <span class="brass">но не цеплялись</span> за него.</h2>
+      <table class="grid compact">
+        <tr><th>занятие</th><th>по первой программе</th><th>как получилось</th></tr>
+        <tr><td class="m">5</td><td>фабрика: проверка сама запускается на GitHub</td><td>проверка растёт; агент сам запускает её после каждой правки</td></tr>
+        <tr><td class="m">6</td><td>приёмка чужой работы</td><td>то же, плюс схема ветки и пул-реквеста, понятная ребёнку</td></tr>
+        <tr><td class="m">7</td><td>зелёная проверка, которая ничего не доказывает</td><td>+ проверка помнит все задания, + цена вопроса (лимит), + ворота deploy.sh</td></tr>
+        <tr><td class="m">8</td><td>показать пять вещей</td><td>пять вещей в своей деке: файл на Pages и артефакт на claude.ai</td></tr>
+      </table>
+      <p class="why"><b>Правило</b> &nbsp;Слово тренера после занятия важнее старого плана. Программа каждый раз обновлялась вслед за сайтом, а не наоборот.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «а вы всё делали по плану?»</p>
+      <p><strong>Сказать:</strong> «Большая фабрика с проверкой на GitHub не вошла в курс: для неё нужны YAML и настройки репозитория, а у вас уже есть маленькая - агент сам проверяет себя».</p>
+      <div class="cockpit"><p><strong>Источники:</strong> <code>programme.md</code> и <code>programme-review.md</code> в репозитории курса; решения - <code>potom.md</code> сайта.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Ветки" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow">Резерв &middot; самое хрупкое место</p>
+      <h2 class="head">Ветки и пул-реквесты -<br><span class="brass">новое и хрупкое</span>.</h2>
+      <div class="prompt"><span class="who">промпт на занятии 7</span>Переключись в ветку main и потяни изменения сайта.</div>
+      <p class="lede">Ветку для задания 6 завели, а само задание отправили в main. Такое случается не только с учениками.</p>
+      <p class="why"><b>Почему пары собирались небыстро</b> &nbsp;Пригласить напарника, завести ветку, прислать пул-реквест, влить - четыре новых действия сразу. Зато всё получилось.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «почему обмен в парах шёл медленно?»</p>
+      <div class="cockpit"><p><strong>Источники:</strong> занятие 7, 2026-11-28, три пары; схема веток - <code>06.html</code> и <code>zapis-6.md</code>.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Занятия" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">Резерв &middot; занятия в цифрах</p>
+      <h2 class="head">Восемь страниц, <span class="brass">восемь пар</span> задание-запись.</h2>
+      <table class="grid compact">
+        <tr><th>занятие</th><th>шагов</th><th>строк страницы</th><th>строк записи</th></tr>
+        <tr><td class="m">1 &middot; Первая поставка</td><td>16</td><td>440</td><td>154</td></tr>
+        <tr><td class="m">2 &middot; Требования</td><td>13</td><td>411</td><td>51</td></tr>
+        <tr><td class="m">3 &middot; Возврат</td><td>11</td><td>336</td><td>185</td></tr>
+        <tr><td class="m">4 &middot; Своя проверка</td><td>10</td><td>319</td><td>39</td></tr>
+        <tr><td class="m">5 &middot; Проверка растёт</td><td>9</td><td>512</td><td>63</td></tr>
+        <tr><td class="m">6 &middot; Приёмка чужой работы</td><td>12</td><td>434</td><td>62</td></tr>
+        <tr><td class="m">7 &middot; Зелёная проверка и цена вопроса</td><td>10</td><td>555</td><td>100</td></tr>
+        <tr><td class="m">8 &middot; Сдача</td><td>9</td><td>422</td><td>100</td></tr>
+      </table>
+      <p class="why"><b>Что видно</b> &nbsp;Шагов на занятии со временем становилось меньше: меньше команд, больше решений. Записи длиннее там, где были возвраты.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «сколько это работы?»</p>
+      <div class="cockpit"><p><strong>Источники, 2026-11-28:</strong> шаги - вывод предиката 7 <code>check.sh</code>; строки - <code>wc -l 0N.html zapis-N.md</code>. Сайт начат 2026-10-08, программа - 2026-09-22.</p></div>
+    </div>
+  </section>
+  <section class="slide" data-section="Резерв &middot; Оркестр" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">Резерв &middot; кто что делал</p>
+      <h2 class="head">Дирижёр <span class="brass">решает</span>,<br>пилот исполняет.</h2>
+      <div class="hscroll"><div class="flow"><div class="node accent"><div class="n-k">дирижёр</div><div class="n-v">тренер: задание, приёмка, git push</div></div><div class="arrow"></div><div class="node"><div class="n-k">пилот</div><div class="n-v">ИИ: страница, проверка, запись, коммит</div></div><div class="arrow"></div><div class="node"><div class="n-k">субагент</div><div class="n-v">первый ученик: прогон промптов</div></div></div></div>
+      <div class="cols three">
+        <div class="card"><p class="k">правило</p><h3>Пушит только человек</h3><p>ИИ коммитит у себя и останавливается. На GitHub работу отправляет тренер, после приёмки.</p></div>
+        <div class="card"><p class="k">правило</p><h3>ИИ - не соавтор</h3><p>В коммитах нет строки «соавтор ИИ». Исполнитель - не автор.</p></div>
+        <div class="card steel"><p class="k">правило</p><h3>Детей в репозитории нет</h3><p>Ни на сайте, ни в записях нет фактов о группе: кто что сделал и сколько справилось.</p></div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="timing">РЕЗЕРВ &middot; на вопрос «а ИИ сам всё делал?»</p>
+      <p><strong>Сказать:</strong> «Нет. ИИ делал много и быстро, но каждое "сделано" принимал человек, по предикатам».</p>
+      <div class="cockpit"><p><strong>Источники:</strong> правило запрета пуша - <code>CLAUDE.md</code> фабрики; приёмки - разделы «Приёмка» в записях.</p></div>
+    </div>
+  </section>
+
+
+</main>
+
+<div class="drawer" id="drawer" aria-live="polite">
+  <div class="dhead">
+    <span>Контекст &middot; заметки докладчика</span>
+    <button id="drawerClose">Закрыть &middot; N</button>
+  </div>
+  <div class="dbody" id="drawerBody"></div>
+</div>
+
+<footer class="footbar">
+  <div class="dots" id="dots"></div>
+  <div class="hint">
+    <span><kbd>&rarr;</kbd> вперёд</span>
+    <span><kbd>&larr;</kbd> назад</span>
+    <span><kbd>N</kbd> заметки</span>
+    <span><kbd>O</kbd> обзор</span>
+    <span><kbd>C</kbd> резерв</span>
+    <span><kbd>T</kbd> тема</span>
+  </div>
+  <div class="foot-actions">
+    <button id="btnTier" aria-pressed="true">Резерв</button>
+    <button id="btnNotes">Заметки</button>
+    <button id="btnTheme">Тема</button>
+  </div>
+</footer>
+
+<div class="help-toast" id="toast"></div>
+
+<script>
+(function () {
+  var allSlides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var tier = 'core';
+  var current = 0;
+  var sectionLabel = document.getElementById('sectionLabel');
+  var idxNow = document.getElementById('idxNow');
+  var idxTotal = document.getElementById('idxTotal');
+  var tierMark = document.getElementById('tierMark');
+  var dotsWrap = document.getElementById('dots');
+  var drawer = document.getElementById('drawer');
+  var drawerBody = document.getElementById('drawerBody');
+  var toast = document.getElementById('toast');
+  var stage = document.getElementById('stage');
+  var btnTier = document.getElementById('btnTier');
+
+  function deck() {
+    return allSlides.filter(function (s) {
+      return tier === 'full' || s.getAttribute('data-tier') !== 'ext';
+    });
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function buildDots() {
+    dotsWrap.innerHTML = '';
+    deck().forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Слайд ' + (i + 1));
+      if (s.getAttribute('data-tier') === 'ext') b.classList.add('optional');
+      b.addEventListener('click', function () { go(i); });
+      dotsWrap.appendChild(b);
+    });
+  }
+
+  function render() {
+    var d = deck();
+    if (current >= d.length) current = d.length - 1;
+    if (current < 0) current = 0;
+    allSlides.forEach(function (s) { s.classList.remove('is-active'); });
+    var active = d[current];
+    active.classList.add('is-active');
+    Array.prototype.slice.call(dotsWrap.children).forEach(function (b, i) {
+      b.setAttribute('aria-current', i === current ? 'true' : 'false');
+    });
+    sectionLabel.innerHTML = active.getAttribute('data-section');
+    idxNow.textContent = pad(current + 1);
+    idxTotal.textContent = pad(d.length);
+    tierMark.textContent = tier === 'full' ? 'РЕЗЕРВ' : 'ЯДРО';
+    var notes = active.querySelector('.notes');
+    drawerBody.innerHTML = notes ? notes.innerHTML : '<p>Для этого слайда заметок нет.</p>';
+    active.scrollTop = 0;
+  }
+
+  function go(i) {
+    var d = deck();
+    current = Math.max(0, Math.min(d.length - 1, i));
+    render();
+  }
+  function next() { if (current < deck().length - 1) go(current + 1); }
+  function prev() { if (current > 0) go(current - 1); }
+
+  function setTier(t) {
+    var d = deck();
+    var keep = d[current];
+    tier = t;
+    buildDots();
+    var nd = deck();
+    var idx = nd.indexOf(keep);
+    if (idx === -1) {
+      idx = 0;
+      for (var i = allSlides.indexOf(keep); i >= 0; i--) {
+        var cand = nd.indexOf(allSlides[i]);
+        if (cand !== -1) { idx = cand; break; }
+      }
+    }
+    current = idx;
+    btnTier.textContent = tier === 'full' ? 'Ядро' : 'Резерв';
+    btnTier.setAttribute('aria-pressed', tier === 'core' ? 'true' : 'false');
+    var plan = document.getElementById('tierPlan');
+    if (plan) {
+      plan.innerHTML = tier === 'full'
+        ? 'Показаны <b>все слайды (15)</b>. Клавиша <b>C</b> прячет резерв.'
+        : 'Показано <b>ядро из 8 слайдов</b>. Клавиша <b>C</b> открывает резерв для вопросов.';
+    }
+    Array.prototype.slice.call(document.querySelectorAll('#tierToggle button')).forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-tier') === tier ? 'true' : 'false');
+    });
+    render();
+    showToast(tier === 'full' ? 'Резерв открыт: все слайды (15)' : 'Ядро: 8 слайдов, 10 минут');
+  }
+
+  function toggleDrawer(force) {
+    var open = force === undefined ? !drawer.classList.contains('open') : force;
+    drawer.classList.toggle('open', open);
+  }
+
+  function showToast(msg) {
+    if (!msg) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { toast.classList.remove('show'); }, 1500);
+  }
+
+  function currentTheme() {
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr) return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function toggleTheme() {
+    var t = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    showToast('Тема: ' + (t === 'dark' ? 'тёмная' : 'светлая'));
+  }
+
+  document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  document.getElementById('btnNotes').addEventListener('click', function () { toggleDrawer(); });
+  document.getElementById('drawerClose').addEventListener('click', function () { toggleDrawer(false); });
+  btnTier.addEventListener('click', function () { setTier(tier === 'full' ? 'core' : 'full'); });
+
+  Array.prototype.slice.call(document.querySelectorAll('#tierToggle button')).forEach(function (b) {
+    b.addEventListener('click', function () { setTier(b.getAttribute('data-tier')); });
+  });
+
+  var pivotBtns = Array.prototype.slice.call(document.querySelectorAll('#pivotToggle button'));
+  var pivotPlan = document.getElementById('pivotPlan');
+  var plans = {
+    slides: 'План: <b>пройти все слайды</b>, запустить демо 1 и демо 2 живьём, терминал держать для вопросов.',
+    demo: 'План: <b>только слайды 1, 3, 4 и 8</b>, дальше живьём в инструментах по карте демо. Закрыть вопросами.'
+  };
+  pivotBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      pivotBtns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      pivotPlan.innerHTML = plans[b.getAttribute('data-plan')];
+    });
+  });
+
+  var overview = false;
+  function toggleOverview() {
+    overview = !overview;
+    document.body.classList.toggle('overview', overview);
+    if (overview) injectOverviewStyles();
+    showToast(overview ? 'Обзор: O или Esc для выхода' : 'Режим слайдов');
+  }
+  function injectOverviewStyles() {
+    if (document.getElementById('ovStyle')) return;
+    var css = document.createElement('style');
+    css.id = 'ovStyle';
+    css.textContent =
+      '.overview .stage{position:fixed;inset:56px 0 52px;overflow:auto;padding:22px;display:grid;' +
+      'grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;align-content:start;}' +
+      '.overview .slide{position:relative;inset:auto;opacity:1;visibility:visible;transform:none;' +
+      'height:180px;overflow:hidden;border:1px solid var(--line);border-radius:10px;padding:16px;' +
+      'cursor:pointer;box-shadow:var(--shadow);background:var(--panel);justify-content:flex-start;}' +
+      '.overview .slide[data-tier="ext"]{border-style:dashed;}' +
+      '.overview .slide.is-active{outline:2px solid var(--accent);}' +
+      '.overview .slide .wrap{max-width:none;transform:scale(.84);transform-origin:top left;}' +
+      '.overview .slide .pivot,.overview .slide .kpis,.overview .slide .hscroll,.overview .slide .cols,' +
+      '.overview .slide .excerpt,.overview .slide .two-up,.overview .slide table.grid,.overview .slide .maplist,' +
+      '.overview .slide .qa-grid,.overview .slide .pull,.overview .slide .points,.overview .slide .title-meta,' +
+      '.overview .slide .why{display:none;}';
+    document.head.appendChild(css);
+    allSlides.forEach(function (s) {
+      s.addEventListener('click', function () {
+        if (!document.body.classList.contains('overview')) return;
+        var idx = deck().indexOf(s);
+        if (idx === -1) return;
+        toggleOverview();
+        go(idx);
+      });
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch (e.key) {
+      case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(deck().length - 1); break;
+      case 'n': case 'N': e.preventDefault(); toggleDrawer(); break;
+      case 't': case 'T': e.preventDefault(); toggleTheme(); break;
+      case 'c': case 'C': e.preventDefault(); setTier(tier === 'full' ? 'core' : 'full'); break;
+      case 'o': case 'O': e.preventDefault(); toggleOverview(); break;
+      case 'Escape':
+        if (document.body.classList.contains('overview')) toggleOverview();
+        else toggleDrawer(false);
+        break;
+      default:
+        if (/^[1-9]$/.test(e.key)) { e.preventDefault(); go(parseInt(e.key, 10) - 1); }
+    }
+  });
+
+  stage.addEventListener('click', function (e) {
+    if (document.body.classList.contains('overview')) return;
+    if (e.target.closest('button, a, input, .pivot, .excerpt')) return;
+    var x = e.clientX / window.innerWidth;
+    if (x > 0.72) next();
+    else if (x < 0.12) prev();
+  });
+
+  buildDots();
+  render();
+})();
+</script>
+
+</body>
+</html>

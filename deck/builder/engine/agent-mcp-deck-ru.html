@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>От чата к фабрике</title>
+<style>
+  :root {
+    --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+    /* светлая тема - чертёж на холодной бумаге */
+    --paper: #E7ECEE;
+    --panel: #F1F5F6;
+    --panel-2: #DCE4E7;
+    --ink: #17222B;
+    --ink-2: #3C4E59;
+    --muted: #64757F;
+    --line: #C2CFD5;
+    --line-strong: #9FB0B9;
+    --accent: #B07A2E;
+    --accent-ink: #855717;
+    --accent-soft: rgba(176,122,46,0.12);
+    --steel: #3B6C79;
+    --steel-soft: rgba(59,108,121,0.12);
+    --grid: rgba(23,34,43,0.045);
+    --shadow: 0 1px 0 rgba(23,34,43,0.04), 0 18px 40px -24px rgba(23,34,43,0.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E141A;
+      --panel: #161F27;
+      --panel-2: #1E2A33;
+      --ink: #E8EEF1;
+      --ink-2: #B0C0C9;
+      --muted: #7E909B;
+      --line: #26333D;
+      --line-strong: #3A4B56;
+      --accent: #D69B4A;
+      --accent-ink: #E6B368;
+      --accent-soft: rgba(214,155,74,0.14);
+      --steel: #5BA2B2;
+      --steel-soft: rgba(91,162,178,0.14);
+      --grid: rgba(232,238,241,0.045);
+      --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 22px 50px -26px rgba(0,0,0,0.7);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #E7ECEE; --panel: #F1F5F6; --panel-2: #DCE4E7; --ink: #17222B; --ink-2: #3C4E59;
+    --muted: #64757F; --line: #C2CFD5; --line-strong: #9FB0B9; --accent: #B07A2E; --accent-ink: #855717;
+    --accent-soft: rgba(176,122,46,0.12); --steel: #3B6C79; --steel-soft: rgba(59,108,121,0.12);
+    --grid: rgba(23,34,43,0.045); --shadow: 0 1px 0 rgba(23,34,43,0.04), 0 18px 40px -24px rgba(23,34,43,0.35);
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E141A; --panel: #161F27; --panel-2: #1E2A33; --ink: #E8EEF1; --ink-2: #B0C0C9;
+    --muted: #7E909B; --line: #26333D; --line-strong: #3A4B56; --accent: #D69B4A; --accent-ink: #E6B368;
+    --accent-soft: rgba(214,155,74,0.14); --steel: #5BA2B2; --steel-soft: rgba(91,162,178,0.14);
+    --grid: rgba(232,238,241,0.045); --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 22px 50px -26px rgba(0,0,0,0.7);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  .blueprint {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  /* ---------- обрамление ---------- */
+  .titleblock {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 6;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
+    padding: 14px clamp(18px, 4vw, 54px);
+    font-family: var(--font-mono);
+    font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(6px);
+  }
+  .titleblock .brand { color: var(--ink); font-weight: 600; }
+  .titleblock .brand b { color: var(--accent-ink); }
+  .titleblock .section { color: var(--ink-2); text-align: center; flex: 1; }
+  .titleblock .idx { color: var(--ink-2); display: flex; gap: 10px; align-items: center; }
+  .titleblock .idx b { color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .tiermark { border: 1px solid var(--line-strong); border-radius: 999px; padding: 2px 9px; font-size: 10.5px; color: var(--steel); }
+
+  .footbar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 6;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 12px clamp(18px, 4vw, 54px);
+    border-top: 1px solid var(--line);
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: blur(6px);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  .dots { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; max-width: 46vw; }
+  .dots button {
+    width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--line-strong);
+    background: transparent; padding: 0; cursor: pointer; transition: all .2s;
+  }
+  .dots button[aria-current="true"] { background: var(--accent); border-color: var(--accent); transform: scale(1.15); }
+  .dots button.optional { border-style: dashed; }
+  .hint { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hint kbd {
+    font-family: var(--font-mono); background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 6px; color: var(--ink-2); font-size: 10.5px;
+  }
+  .foot-actions { display: flex; gap: 8px; }
+  .foot-actions button {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: var(--panel); border: 1px solid var(--line); color: var(--ink-2);
+    padding: 4px 9px; border-radius: 5px; cursor: pointer;
+  }
+  .foot-actions button:hover { border-color: var(--accent); color: var(--accent-ink); }
+  .foot-actions button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-soft); }
+
+  /* ---------- сцена и слайды ---------- */
+  .stage { position: fixed; inset: 0; z-index: 1; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(64px, 8vh, 92px) clamp(20px, 6vw, 88px);
+    opacity: 0; visibility: hidden; transform: translateY(14px);
+    transition: opacity .38s ease, transform .38s ease, visibility .38s;
+    overflow-y: auto;
+  }
+  .slide.is-active { opacity: 1; visibility: visible; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .slide { transition: opacity .001s; transform: none; }
+  }
+  .wrap { width: 100%; max-width: 1120px; margin: 0 auto; }
+
+  .eyebrow {
+    font-family: var(--font-mono); font-size: clamp(11px, 1.1vw, 13px);
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-ink);
+    display: inline-flex; align-items: center; gap: 10px; margin: 0 0 16px;
+  }
+  .eyebrow::before { content: ""; width: 26px; height: 2px; background: var(--accent); display: inline-block; }
+  .eyebrow.steel { color: var(--steel); }
+  .eyebrow.steel::before { background: var(--steel); }
+
+  h1.title {
+    font-family: var(--font-mono); font-weight: 700;
+    font-size: clamp(30px, 5.6vw, 72px); line-height: 1.0; letter-spacing: -0.01em;
+    margin: 0; text-wrap: balance; color: var(--ink);
+  }
+  h2.head {
+    font-family: var(--font-mono); font-weight: 700;
+    font-size: clamp(22px, 3.5vw, 44px); line-height: 1.06; letter-spacing: -0.01em;
+    margin: 0 0 8px; text-wrap: balance; color: var(--ink);
+  }
+  h2.head .brass { color: var(--accent-ink); }
+  .lede { font-size: clamp(15px, 1.7vw, 19.5px); color: var(--ink-2); max-width: 66ch; line-height: 1.5; margin: 12px 0 0; }
+  p { line-height: 1.55; }
+  strong { color: var(--ink); font-weight: 650; }
+  .mono { font-family: var(--font-mono); }
+
+  /* строка «зачем» - один отказ, который это предотвращает */
+  .why {
+    margin: 14px 0 0; padding: 10px 14px;
+    border-left: 3px solid var(--steel); background: var(--steel-soft);
+    border-radius: 0 8px 8px 0;
+    font-family: var(--font-mono); font-size: clamp(12.5px, 1.3vw, 14.5px);
+    color: var(--ink); line-height: 1.5; max-width: 88ch;
+  }
+  .why b { color: var(--steel); letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.82em; }
+
+  /* список тезисов */
+  .points { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 13px; max-width: 80ch; }
+  .points > li {
+    position: relative; padding-left: 28px; font-size: clamp(14px, 1.45vw, 17px);
+    color: var(--ink-2); line-height: 1.5;
+  }
+  .points > li::before {
+    content: ""; position: absolute; left: 0; top: 0.62em; width: 12px; height: 2px; background: var(--accent);
+  }
+  .points > li b, .points > li strong { color: var(--ink); }
+
+  /* карточки */
+  .cols { display: grid; gap: 16px; margin-top: 22px; }
+  .cols.three { grid-template-columns: repeat(3, 1fr); }
+  .cols.two { grid-template-columns: repeat(2, 1fr); }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 20px 20px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  .card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); opacity: .85; }
+  .card.steel::before { background: var(--steel); }
+  .card .k {
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent-ink); margin: 0 0 6px;
+  }
+  .card.steel .k { color: var(--steel); }
+  .card h3 { font-family: var(--font-mono); font-size: clamp(15px, 1.65vw, 18.5px); margin: 0 0 8px; color: var(--ink); letter-spacing: -0.01em; }
+  .card p { margin: 0; font-size: clamp(13px, 1.32vw, 14.8px); color: var(--ink-2); line-height: 1.5; }
+  .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .card .tags span {
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2);
+    padding: 2px 8px; border-radius: 999px;
+  }
+
+  /* плитки с числами */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px; }
+  .kpis.three { grid-template-columns: repeat(3, 1fr); }
+  .kpi { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 15px 16px 13px; }
+  .kpi .num {
+    font-family: var(--font-mono); font-weight: 700; font-variant-numeric: tabular-nums;
+    font-size: clamp(23px, 3.5vw, 40px); line-height: 1; color: var(--ink); letter-spacing: -0.02em;
+    display: flex; align-items: baseline; gap: 5px;
+  }
+  .kpi .num u { text-decoration: none; color: var(--accent-ink); font-size: 0.4em; letter-spacing: 0.02em; }
+  .kpi .lbl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+
+  /* вырезка кода со своим адресом */
+  .excerpt { margin-top: 18px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); background: var(--panel); }
+  .excerpt .srcbar {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2);
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.04em; color: var(--muted);
+  }
+  .excerpt .srcbar b { color: var(--accent-ink); font-weight: 600; }
+  .excerpt .srcbar .verify { color: var(--steel); text-transform: none; letter-spacing: 0.02em; }
+  .excerpt pre {
+    margin: 0; padding: 14px 16px; overflow-x: auto;
+    font-family: var(--font-mono); font-size: clamp(11.5px, 1.18vw, 14px); line-height: 1.52; color: var(--ink);
+  }
+  .excerpt pre .c { color: var(--muted); }
+  .excerpt pre .s { color: var(--steel); }
+  .excerpt pre .a { color: var(--accent-ink); }
+  .excerpt.tight pre { font-size: clamp(10.8px, 1.05vw, 12.6px); }
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; align-items: start; }
+  .two-up .excerpt { margin-top: 0; }
+
+  /* таблица */
+  table.grid { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: clamp(12.5px, 1.3vw, 15px); }
+  table.grid th, table.grid td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); color: var(--ink-2); }
+  table.grid th { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  table.grid td.m, table.grid th.m { font-family: var(--font-mono); }
+  table.grid td b { color: var(--ink); }
+  table.grid td .a { color: var(--accent-ink); font-family: var(--font-mono); }
+  table.grid tr:last-child td { border-bottom: none; }
+  table.grid.compact th, table.grid.compact td { padding: 6px 10px; font-size: clamp(11.5px, 1.2vw, 13.5px); }
+
+  /* поток */
+  .hscroll { overflow-x: auto; padding-bottom: 6px; margin-top: 20px; }
+  .flow { display: flex; align-items: stretch; gap: 0; min-width: min-content; }
+  .node {
+    flex: 0 0 auto; background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 13px; min-width: 112px; text-align: center; box-shadow: var(--shadow);
+  }
+  .node .n-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .node .n-v { font-family: var(--font-mono); font-weight: 650; font-size: 12.5px; color: var(--ink); margin-top: 4px; }
+  .node.accent { border-color: var(--accent); }
+  .node.accent .n-v { color: var(--accent-ink); }
+  .arrow { flex: 0 0 auto; align-self: center; width: 24px; height: 2px; background: var(--line-strong); position: relative; }
+  .arrow::after { content: ""; position: absolute; right: 0; top: -3px; border: 4px solid transparent; border-left-color: var(--line-strong); }
+
+  /* цитата */
+  .pull { margin-top: 22px; border-left: 3px solid var(--accent); padding: 8px 0 8px 18px; max-width: 70ch; }
+  .pull p { font-family: var(--font-mono); font-size: clamp(15px, 1.85vw, 22px); line-height: 1.32; color: var(--ink); margin: 0; letter-spacing: -0.01em; }
+  .pull cite { display: block; margin-top: 9px; font-style: normal; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  /* титульный */
+  .title-slide .wrap { max-width: 1180px; }
+  .title-meta { display: flex; flex-wrap: wrap; gap: 9px 20px; margin-top: 22px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase; }
+  .title-meta span b { color: var(--ink-2); }
+  .pivot { margin-top: 24px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 18px 20px; box-shadow: var(--shadow); max-width: 920px; }
+  .pivot .q { font-family: var(--font-mono); font-size: 13.5px; color: var(--ink); letter-spacing: 0.01em; margin: 0 0 12px; }
+  .pivot .q b { color: var(--accent-ink); }
+  .pivot-toggle { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pivot-toggle button {
+    flex: 1 1 230px; text-align: left; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+    color: var(--ink-2); transition: all .18s; font-family: inherit;
+  }
+  .pivot-toggle button .t { font-family: var(--font-mono); font-weight: 650; color: var(--ink); font-size: 14.5px; display: block; }
+  .pivot-toggle button .d { font-size: 12px; margin-top: 4px; display: block; line-height: 1.4; }
+  .pivot-toggle button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+  .pivot-toggle button[aria-pressed="true"] .t { color: var(--accent-ink); }
+  .pivot-plan { margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); letter-spacing: 0.01em; min-height: 1.4em; }
+  .pivot-plan b { color: var(--accent-ink); }
+
+  /* карта демо */
+  .maplist { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; margin-top: 18px; }
+  .maplist .row { display: flex; gap: 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .maplist .row code { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent-ink); white-space: nowrap; }
+  .maplist .row span { font-size: 12.5px; color: var(--ink-2); }
+  .qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 22px; margin-top: 16px; }
+  .qa { border-left: 3px solid var(--steel); padding-left: 13px; }
+  .qa .q { font-family: var(--font-mono); font-size: 13px; color: var(--ink); margin: 0 0 4px; }
+  .qa .a { font-size: 12.5px; color: var(--ink-2); margin: 0; line-height: 1.45; }
+
+  /* ящик с заметками */
+  .drawer {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 8;
+    transform: translateY(102%); transition: transform .34s ease;
+    background: var(--panel); border-top: 2px solid var(--accent);
+    box-shadow: 0 -18px 44px -22px rgba(0,0,0,0.5);
+    max-height: 64vh; display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: none; }
+  .drawer .dhead {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 12px clamp(18px,4vw,54px); border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-ink);
+  }
+  .drawer .dhead button { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-2); border-radius: 5px; padding: 4px 10px; cursor: pointer; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; }
+  .drawer .dbody { padding: 16px clamp(18px,4vw,54px) 26px; overflow-y: auto; }
+  .drawer .dbody .timing { font-family: var(--font-mono); font-size: 12.5px; color: var(--accent-ink); margin: 0 0 12px; letter-spacing: 0.02em; }
+  .drawer .dbody p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.62; color: var(--ink-2); max-width: 92ch; }
+  .drawer .dbody p strong { color: var(--ink); }
+  .drawer .dbody ul { margin: 0 0 10px; padding-left: 20px; max-width: 92ch; }
+  .drawer .dbody li { font-size: 14px; line-height: 1.55; color: var(--ink-2); margin-bottom: 5px; }
+  .drawer .dbody code { font-family: var(--font-mono); font-size: 0.92em; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; color: var(--ink); }
+  .drawer .dbody .cockpit { border-left: 3px solid var(--steel); padding-left: 14px; margin: 0 0 10px; }
+  .notes { display: none; }
+
+  .help-toast {
+    position: fixed; z-index: 9; left: 50%; bottom: 74px; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.02em;
+    padding: 9px 16px; border-radius: 8px; opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .help-toast.show { opacity: 0.95; }
+
+  .slide[data-tier="ext"] .eyebrow::after {
+    content: "расширение"; font-size: 9.5px; letter-spacing: 0.1em;
+    border: 1px dashed var(--line-strong); border-radius: 999px; padding: 1px 7px; color: var(--steel);
+  }
+
+  @media (max-width: 900px) {
+    .cols.three, .cols.two, .kpis, .kpis.three, .maplist, .qa-grid, .two-up { grid-template-columns: 1fr; }
+    .kpis, .kpis.three { grid-template-columns: 1fr 1fr; }
+    .hint { display: none; }
+    .dots { max-width: 40vw; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blueprint" aria-hidden="true"></div>
+
+<header class="titleblock">
+  <div class="brand">АГЕНТ <b>//</b> MCP</div>
+  <div class="section" id="sectionLabel">О докладе</div>
+  <div class="idx"><span class="tiermark" id="tierMark">ПОЛНАЯ</span><span><b id="idxNow">01</b> / <span id="idxTotal">19</span></span></div>
+</header>
+
+<main class="stage" id="stage">
+
+  <!-- 1 - ТИТУЛЬНЫЙ -->
+  <section class="slide title-slide is-active" data-section="О докладе" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">Автономные агенты на детерминированной шине</p>
+      <h1 class="title">От чата<br>к фабрике</h1>
+      <p class="lede">Языковая модель рассуждает. Она не должна быть тем, что хранит состояние, считает бюджет и решает, свободна ли блокировка. Доклад о <strong>детерминированном слое под агентами</strong> и о протоколе, которым его вызывает любая студия.</p>
+      <div class="title-meta">
+        <span><b>ПРЕДМЕТ:</b> Model Context Protocol над набором инструментов пилота</span>
+        <span><b>ДОКАЗАТЕЛЬСТВО:</b> один работающий репозиторий фабрики</span>
+        <span><b>СТУДИИ:</b> три, контракт один</span>
+      </div>
+
+      <div class="pivot">
+        <p class="q">Сначала спросить зал: <b>«Больше слайдов или больше демо?»</b> Потом выбрать длину.</p>
+        <div class="pivot-toggle" id="pivotToggle">
+          <button data-plan="slides" aria-pressed="false">
+            <span class="t">Больше слайдов</span>
+            <span class="d">70% дека, 30% терминал. Пройти архитектуру, запустить два инструмента живьём.</span>
+          </button>
+          <button data-plan="demo" aria-pressed="false">
+            <span class="t">Больше демо</span>
+            <span class="d">30% дека, 70% терминал. Четыре опорных слайда, дальше живьём в инструментах.</span>
+          </button>
+        </div>
+        <div class="pivot-plan" id="pivotPlan">Выбери путь, чтобы увидеть расклад. Пунктирные точки - слайды расширения.</div>
+      </div>
+
+      <div class="pivot">
+        <p class="q">Длина: <b>ядро</b> это 11 слайдов на 20-25 минут. <b>Полная</b> это все 19 на 45 минут.</p>
+        <div class="pivot-toggle" id="tierToggle">
+          <button data-tier="core" aria-pressed="false">
+            <span class="t">Ядро &middot; 20-25 мин</span>
+            <span class="d">Проблема, архитектура, периметр, три инструмента живьём, экономика, гейты, вопросы.</span>
+          </button>
+          <button data-tier="full" aria-pressed="true">
+            <span class="t">Полная &middot; 45 мин</span>
+            <span class="d">Плюс анатомия протокола, один контракт целиком, ещё два инструмента, капитал, кольца, сеть, горизонт.</span>
+          </button>
+        </div>
+        <div class="pivot-plan" id="tierPlan">Показаны <b>все 19 слайдов</b>. Клавиша <b>C</b> переключает на ядро из 11.</div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="timing">РИТУАЛ &middot; ~40 сек. Два выбора до начала: сколько демо и сколько времени.</p>
+      <p><strong>Начинать с переворота, а не с инструмента.</strong> Сказать: «Все делают агентов, которые рассуждают лучше. Мы потратили силы на обратную задачу - чтобы агенту вообще не приходилось рассуждать о том, что можно просто измерить».</p>
+      <p><strong>Дальше принять оба решения вслух.</strong> Нажать расклад демо, нажать длину. Оба настоящие: переключатель длины вынимает слайды расширения из деки, поэтому выйти за слот случайно уже нельзя.</p>
+      <ul>
+        <li><strong>Больше слайдов</strong> плюс <strong>ядро</strong> - безопасный выбор для смешанного зала.</li>
+        <li><strong>Больше демо</strong> плюс <strong>полная</strong> требует живого терминала и 45 минут; держать запись как подстраховку.</li>
+      </ul>
+      <p>Клавиши: <code>&rarr;</code> вперёд, <code>&larr;</code> назад, <code>N</code> заметки, <code>O</code> обзор, <code>T</code> тема, <code>C</code> ядро или полная.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> два терминала, оба в корне репозитория. Один для вызовов инструментов, второй оставить на <code>git status</code>. В обоих задать <code>REPO=$(pwd)</code>, чтобы на экране не появился абсолютный путь.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 - ЛОВУШКА ЧАТА -->
+  <section class="slide" data-section="1 &middot; Проблема" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">01 &middot; Проблема</p>
+      <h2 class="head">Чат не удерживает<br>проект длиной в <span class="brass">недели</span>.</h2>
+      <ul class="points">
+        <li><strong>Амнезия на каждой границе.</strong> Сессия кончилась, окно провернулось, модель заменили. Всё, о чём договорились и чего не записали, исчезло, и об утрате никто не сообщает.</li>
+        <li><strong>Платишь за перечитывание.</strong> Дорогая часть работы агента - не размышление, а повторная загрузка того же контекста. По измерениям наших собственных сессий это большая часть счёта.</li>
+        <li><strong>Уверенная тихая неправда.</strong> Спроси модель о состоянии, которого она не видит, и получишь правдоподобный ответ: число тестов, статус блокировки, остаток бюджета. Ошибки нет, есть неверное число, похожее на измерение.</li>
+      </ul>
+      <p class="why"><b>Почему это важно</b> &nbsp;Каждый отказ выше невидим в момент, когда происходит. Узнаёшь смену спустя - из решения, принятого на выдуманном факте.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 1 &middot; ~2,5 мин. Назвать отказ, решение пока не продавать.</p>
+      <p><strong>Сильнее всего третий тезис.</strong> Первые два - знакомое ворчание. Третий стоит денег: модель, спрошенная «исполнитель работает?», уверенно ответит по lock-файлу, который живёт дольше любого прогона. Мы ровно этот дефект и поймали, и из-за него инструмент существует.</p>
+      <p><strong>Держать наготове одну историю и уложить её в три фразы.</strong> Выбрать ту, где по правдоподобному ответу уже действовали. Не обобщать её на слайде: один случай это пример, а не механизм.</p>
+      <p><strong>Про протокол пока молчать.</strong> Если спросят «так это MCP?», ответить: «это третий слайд, и он скучный - интересное лежит под ним».</p>
+    </div>
+  </section>
+
+  <!-- 3 - ТАБЛИЦА ОС -->
+  <section class="slide" data-section="2 &middot; Рамка" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow steel">02 &middot; Рамка</p>
+      <h2 class="head">Агенту нужно то же,<br>что <span class="brass">процессу</span>.</h2>
+      <p class="lede">Это не метафора для красоты, а список для проверки: каждую гарантию, которую операционная система даёт процессу, автономный агент требует тоже - и можно назвать, каких у тебя нет.</p>
+      <table class="grid compact">
+        <tr><th>Классическая ОС</th><th>Среда агента</th><th>Что это даёт</th></tr>
+        <tr><td class="m">Системные вызовы</td><td class="m"><span class="a">5 типизированных инструментов</span></td><td>Никакого произвольного шелла. Набор инструментов - единственная дверь.</td></tr>
+        <tr><td class="m">Планировщик, IPC</td><td class="m">диспетчер, таймеры, блокировки</td><td>Параллельные агенты, не мешающие друг другу.</td></tr>
+        <tr><td class="m">Иерархия памяти</td><td class="m">контекст &rarr; документы &rarr; журнал</td><td>Контекст как дефицитная память, а не как лог.</td></tr>
+        <tr><td class="m">Кольца защиты</td><td class="m">человек &rarr; пилот &rarr; исполнитель</td><td>Исполнитель в песочнице и без права публиковать.</td></tr>
+        <tr><td class="m">Управление питанием</td><td class="m">телеметрия бюджета</td><td>Тяжёлое не начинают на бюджете, который его не доведёт.</td></tr>
+        <tr><td class="m">Ловушки, MMU</td><td class="m">гейты тестов и линтеров</td><td>Негодная работа остановлена до того, как её читает человек.</td></tr>
+      </table>
+      <p class="why"><b>Зачем эта рамка</b> &nbsp;Не назвав слои, нельзя понять, какой гарантии не хватает. Каждый наш сбой ложится ровно в одну пустую строку.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 2 &middot; ~2,5 мин. Намеренно обзорно. Не читать лекцию.</p>
+      <p><strong>Этот слайд даёт право на всё остальное.</strong> Он говорит залу, что набор инструментов - не обёртка для удобства, а слой системных вызовов среды, и что у среды есть и другие части.</p>
+      <p><strong>Если зал опытный, предложить диагностику:</strong> спросить, какая строка пуста у них. У большинства есть инструменты и гейты, почти ни у кого нет управления бюджетом и колец.</p>
+      <p><strong>Таблицу вслух не читать.</strong> Произнести первую строку, четвёртую и пятую, и идти дальше. Слайд - справка, а не сценарий.</p>
+    </div>
+  </section>
+
+  <!-- 4 - АРХИТЕКТУРА -->
+  <section class="slide" data-section="3 &middot; Архитектура" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">03 &middot; Архитектура</p>
+      <h2 class="head">Тонкий мост над<br><span class="brass">детерминированными</span> скриптами.</h2>
+      <p class="lede">Сервер не делает работы сам. Он проверяет, направляет и упаковывает вывод шелла и Python, которые уже существовали и уже были покрыты тестами.</p>
+      <div class="hscroll">
+        <div class="flow">
+          <div class="node"><div class="n-k">любая студия</div><div class="n-v">агент</div></div>
+          <div class="arrow"></div>
+          <div class="node"><div class="n-k">транспорт</div><div class="n-v">stdio</div></div>
+          <div class="arrow"></div>
+          <div class="node accent"><div class="n-k">протокол</div><div class="n-v">JSON-RPC 2.0</div></div>
+          <div class="arrow"></div>
+          <div class="node accent"><div class="n-k">мост</div><div class="n-v">693 строки<br>только stdlib</div></div>
+          <div class="arrow"></div>
+          <div class="node"><div class="n-k">нижний слой</div><div class="n-v">shell + python</div></div>
+          <div class="arrow"></div>
+          <div class="node"><div class="n-k">факты</div><div class="n-v">git, systemd,<br>sysfs, журнал</div></div>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="num">693</div><div class="lbl">строки, весь сервер</div></div>
+        <div class="kpi"><div class="num">0</div><div class="lbl">зависимостей, только stdlib</div></div>
+        <div class="kpi"><div class="num">5</div><div class="lbl">инструментов на поверхности</div></div>
+        <div class="kpi"><div class="num">23</div><div class="lbl">теста на сервер</div></div>
+      </div>
+      <p class="why"><b>Зачем такая тонкость</b> &nbsp;Толстый сервер становится второй реализацией и расходится со скриптами, которые люди всё равно запускают руками. Здесь реализация одна, и агент с человеком вызывают одно и то же.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 3 &middot; ~2 мин. Главное архитектурное утверждение доклада.</p>
+      <p><strong>Произнести правило тонкого моста:</strong> в сервере нет логики предметной области. Нужно новое поведение - оно уходит в скрипт, куда достают shell-тесты, а сервер обзаводится только параметром.</p>
+      <p><strong>Ноль зависимостей - решение про цену,</strong> а не минимализм ради красоты. Нет pip install - значит сервер поднимается в любой студии, на любом хосте, внутри клона исполнителя: нечего разворачивать и нечему ломаться при обновлении.</p>
+      <p><strong>Ждать вопрос «почему не HTTP?».</strong> Ответ: stdio не нужен порт, аутентификация и демон, и он умирает вместе с клиентом. HTTP и SSE описаны для распределённого случая и намеренно ещё не построены.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> сервер это один файл, <code>scripts/src/python/pilot_mcp_server.py</code>. Если спросят, открыть и прокрутить пять определений инструментов, затем пять ветвей диспетчера. Больше показывать нечего.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 - ПРОТОКОЛ (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="3a &middot; Протокол" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">03a &middot; Анатомия протокола</p>
+      <h2 class="head">Четыре метода и <span class="brass">пять</span> кодов ошибок.</h2>
+      <div class="two-up">
+        <div class="excerpt">
+          <div class="srcbar"><span><b>весь формат обмена</b></span><span class="verify">строка на вход, строка на выход</span></div>
+<pre><span class="c"># обнаружение</span>
+{"jsonrpc":"2.0","id":1,"method":"tools/list"}
+
+<span class="c"># исполнение</span>
+{"jsonrpc":"2.0","id":2,"method":"tools/call",
+ "params":{"name":"pilot_look",
+           "arguments":{"fetch":false}}}
+
+<span class="c"># жизненный цикл</span>
+initialize &middot; notifications/initialized &middot; ping</pre>
+        </div>
+        <div class="excerpt">
+          <div class="srcbar"><span><b>отказ типизирован</b></span><span class="verify">протокол против инструмента</span></div>
+<pre><span class="a">-32700</span>  разбор          негодный JSON на входе
+<span class="a">-32600</span>  запрос          нет jsonrpc: "2.0"
+<span class="a">-32601</span>  метод           неизвестный метод
+<span class="a">-32602</span>  параметры       нет инструмента или поля
+<span class="a">-32603</span>  внутренняя      необработанное исключение
+
+<span class="c"># инструмент отработал и отказал - это НЕ ошибка:</span>
+<span class="c"># успешный конверт, isError: true, текст в content</span></pre>
+        </div>
+      </div>
+      <p class="why"><b>Зачем это различие</b> &nbsp;Если отказ скрипта приходил бы как ошибка протокола, агент повторял бы вызов. А он должен прочитать отказ и сменить поведение. Конверт несёт эту разницу.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. В ядре пропускается. Оставлять для зала, который сам будет такое писать.</p>
+      <p><strong>Различие справа - то, что стоит унести.</strong> Ошибка протокола значит «ты вызвал меня неправильно», и повтор может помочь. <code>isError: true</code> внутри успешного конверта значит «я отработал, и мир сказал нет», повтор бесполезен, нужно читать текст.</p>
+      <p><strong>Если есть терминал:</strong> подать намеренно битую строку и показать <code>-32700</code>, затем корректный вызов на несуществующий шаг и показать типизированный отказ внутри успешного конверта.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> <code>echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | python3 $REPO/scripts/src/python/pilot_mcp_server.py</code>, затем то же с <code>notamethod</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 - ПЕРИМЕТР -->
+  <section class="slide" data-section="4 &middot; Периметр" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">04 &middot; Периметр безопасности</p>
+      <h2 class="head">Модель никогда не собирает<br><span class="brass">строку для шелла</span>.</h2>
+      <div class="excerpt">
+        <div class="srcbar"><span>каждый вызов инструмента, без исключений &middot; <b>pilot_mcp_server.py:394-404</b></span><span class="verify">проверка: открыть файл на этой строке</span></div>
+<pre>cmd = [str(self.repo_root / <span class="s">"scripts/src/bash/pilot-look.sh"</span>)]
+<span class="a">if</span> args.get(<span class="s">"fetch"</span>) <span class="a">is True</span>:
+    cmd.append(<span class="s">"--fetch"</span>)
+
+proc = subprocess.run(
+    cmd,                      <span class="c"># вектор аргументов, никогда не строка</span>
+    cwd=str(self.repo_root),  <span class="c"># корень наш, а не модели</span>
+    capture_output=<span class="a">True</span>,
+    text=<span class="a">True</span>,
+    check=<span class="a">False</span>,
+)</pre>
+      </div>
+      <div class="cols two">
+        <div class="card">
+          <p class="k">что это гарантирует</p>
+          <h3>Нет шелла - нет подстановки</h3>
+          <p>Между сервером и скриптом шелла нет, поэтому инъектировать некуда. Булево значение становится флагом или ничем. Инструменты чтения не меняют ни одного файла, журнал только дописывается, публиковать в удалённый репозиторий не может ни один инструмент.</p>
+        </div>
+        <div class="card steel">
+          <p class="k">чего он не гарантирует</p>
+          <h3>Ограничение путей заявлено, но не проверяется</h3>
+          <p>Строковые аргументы доходят до скриптов без проверки, а корень переопределяется флагом в командной строке. Документ интерфейса обещает ограничение, которого код не реализует, и ни один тест его не покрывает. Названо здесь потому, что зал это найдёт.</p>
+        </div>
+      </div>
+      <p class="why"><b>Зачем говорить вторую половину вслух</b> &nbsp;Неверно описанный периметр хуже маленького. Самое сильное утверждение здесь то, которое код действительно делает: модель поставляет значения, но никогда синтаксис.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 4 &middot; ~3 мин. Слайд, который зарабатывает техническое доверие, причём в основном правой карточкой.</p>
+      <p><strong>Говорить механизм точно.</strong> Обычно слышат «мы поставили <code>shell=False</code>». Такой строки нет: защита в том, что передаётся список, поэтому шелл не порождается вообще. Так и сказать, показав на <code>cmd</code>.</p>
+      <p><strong>Затем выдать пробел самому.</strong> Наш документ интерфейса обещает, что ни один аргумент не выйдет за корень репозитория; в коде такой проверки нет, корень переопределяется флагом, и ни один из 23 тестов сервера traversal не покрывает. Сказав это первым, превращаешь самый острый вопрос зала в согласие.</p>
+      <p><strong>Если надавят, насколько это плохо:</strong> радиус поражения ограничен тем, что принимают скрипты, а они берут идентификаторы шагов и сценариев, а не пути. Это недостающая защёлка, а не открытая дверь, и она уже в списке.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> <code>scripts/src/python/pilot_mcp_server.py:394</code> для вектора; <code>scripts/tests/python/test_pilot_mcp_server.py</code>, если захотят увидеть 23 теста. Документ интерфейса на экране не открывать - именно его формулировка неверна.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 - КОНТРАКТ (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="4a &middot; Контракт" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">04a &middot; Один инструмент целиком</p>
+      <h2 class="head">Схема - это то, что модель<br><span class="brass">действительно видит</span>.</h2>
+      <div class="excerpt tight">
+        <div class="srcbar"><span>путь записи в журнал решений &middot; <b>pilot_mcp_server.py:109-146</b></span><span class="verify">перечисления, а не проза</span></div>
+<pre><span class="s">"kind"</span>:     {<span class="s">"enum"</span>: [<span class="s">"order"</span>, <span class="s">"acceptance"</span>, <span class="s">"repair"</span>, <span class="s">"escalation"</span>, <span class="s">"note"</span>]}
+<span class="s">"decision"</span>: {<span class="s">"enum"</span>: [<span class="s">"accepted"</span>, <span class="s">"returned"</span>, <span class="s">"repaired"</span>,
+                      <span class="a">"waiting_for_conductor"</span>, <span class="s">"closed"</span>]}
+<span class="s">"ground"</span>:   {<span class="s">"type"</span>: <span class="s">"string"</span>, <span class="s">"description"</span>: <span class="s">"основание одной фразой (обязательно)"</span>}
+<span class="s">"evidence"</span>: {<span class="s">"type"</span>: <span class="s">"array"</span>, <span class="s">"items"</span>: {<span class="s">"type"</span>: <span class="s">"string"</span>},
+             <span class="s">"description"</span>: <span class="s">"ссылки file:line или измерения (необязательно)"</span>}
+<span class="s">"required"</span>: [<span class="s">"action"</span>]   <span class="c"># для append ещё order, issued_by, kind, decision, ground</span></pre>
+      </div>
+      <ul class="points">
+        <li><strong>Перечисление - решение проектировщика, а не деталь валидации.</strong> Пять значений решения означают, что агент не выдумает шестое состояние мира, а читатель через пять месяцев знает весь словарь.</li>
+        <li><strong>Обязательное <span class="mono">ground</span> делает причину обязательной.</strong> Нельзя записать, что решено, не записав почему.</li>
+        <li><strong>Все пять схем вместе стоят несколько сотен токенов</strong> контекста и несутся один раз за сессию.</li>
+      </ul>
+      <p class="why"><b>Зачем тратить слайд на схему</b> &nbsp;Слабая схема не падает громко. Она даёт вызовы, которые приняты, правдоподобны и неверны, и журнал наполняется выдумкой правильной формы.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. В ядре пропускается, если зал не строит инструменты сам.</p>
+      <p><strong>Суть в моделировании, а не в JSON.</strong> Каждое перечисление закрывает дверь, в которую модель иначе войдёт. Мы выучили это на <code>decision</code>: до перечисления в журнале появлялись выдуманные статусы, и запрашивать было нечего.</p>
+      <p><strong>Обязательное <code>ground</code> - самая принципиальная деталь.</strong> Это разница между логом и журналом, и именно поэтому журнал читается следующей сменой, а не только автором.</p>
+    </div>
+  </section>
+
+  <!-- 8 - ДЕМО 1 -->
+  <section class="slide" data-section="5 &middot; Демо 1" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">05 &middot; Живьём &middot; осмотр периметра</p>
+      <h2 class="head">Один вызов, <span class="brass">шесть источников</span>, без чтения.</h2>
+      <div class="excerpt">
+        <div class="srcbar"><span>запустить &middot; <b>pilot_look</b>, <b>pilot_status</b></span><span class="verify">в IDE достаточно попросить словами</span></div>
+<pre><span class="c"># то же самое, что запускает человек, вызванное агентом:</span>
+python3 $REPO/scripts/src/python/pilot_mcp_server.py \
+  --call pilot_look --args '{"fetch": false}'
+
+python3 $REPO/scripts/src/python/pilot_mcp_server.py \
+  --call pilot_status --args '{"format": "json"}'</pre>
+      </div>
+      <table class="grid compact">
+        <tr><th>Что возвращается</th><th>Откуда читается</th><th>Читается как файл?</th></tr>
+        <tr><td>открытые эскалации</td><td class="m">журнал json, 31 запись</td><td>да</td></tr>
+        <tr><td>последние слова человека</td><td class="m">транскрипт студии</td><td class="m"><span class="a">9,23 МБ</span></td></tr>
+        <tr><td>поставки на ожидании</td><td class="m">удалённые ссылки git</td><td>только через git</td></tr>
+        <tr><td>таймер каждого исполнителя</td><td class="m">состояние юнита systemd</td><td class="m"><span class="a">нет</span></td></tr>
+        <tr><td>идёт ли прогон</td><td class="m">попытка взять flock</td><td class="m"><span class="a">нет</span></td></tr>
+        <tr><td>дерево, ветка, расхождение</td><td class="m">git status, rev-list</td><td>только через git</td></tr>
+      </table>
+      <p class="why"><b>Зачем инструмент, а не чтение файла</b> &nbsp;Три источника из шести - не файлы. Модель с бесконечным контекстом всё равно не ответит на эти вопросы, а существование lock-файла не говорит вообще ничего.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">ДЕМО 1 &middot; ~3 мин. Первый живой момент. Сначала показать, потом объяснить.</p>
+      <p><strong>Если IDE поднята, запускать в чате, а не в терминале.</strong> Набрать «что со состоянием периметра?» и дать студии собрать вызов. В этом весь пользовательский опыт: человек просит словами, модель формирует JSON, вывод маленький.</p>
+      <p><strong>Проговорить вывод сверху вниз один раз</strong> и остановиться. Аргумент в таблице: показать на три строки с «нет» и сказать, что здесь проходит граница между инструментом и удачным промптом.</p>
+      <p><strong>Строка про блокировку - лучшая история.</strong> Lock-файл живёт дольше любого прогона, поэтому его существование ничего не доказывает. Честная проверка одна: попытаться взять блокировку и отпустить её, что скрипт и делает в четыре строки. Никакое чтение файлов это не заменит.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> <code>scripts/src/bash/pilot-look.sh</code> - комментарий про блокировку на строках 48-51, сама попытка на 52-61. Держать открытым во втором терминале на случай вопроса.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 - ДЕМО 2 -->
+  <section class="slide" data-section="6 &middot; Демо 2" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">06 &middot; Живьём &middot; журнал решений</p>
+      <h2 class="head">Остановка с <span class="brass">названным адресатом</span>.</h2>
+      <div class="two-up">
+        <div class="excerpt">
+          <div class="srcbar"><span>запустить &middot; <b>pilot_journal</b></span><span class="verify">open это запрос, append это вставка</span></div>
+<pre><span class="c"># что прямо сейчас ждёт человека:</span>
+--call pilot_journal \
+  --args '{"action": "open"}'
+
+<span class="c"># остановиться и назвать, кто должен ответить:</span>
+--call pilot_journal --args '{
+  "action": "append",
+  "order": "Step 0.110 (tooling)",
+  "issued_by": "dev0-pilot-1-27",
+  "kind": "escalation",
+  "decision": "waiting_for_conductor",
+  "ground": "приёмка принадлежит человеку
+             и не была дана",
+  "question": "Принимаешь исправленный шаг
+               и публикуешь его?"
+}'</pre>
+        </div>
+        <div class="excerpt">
+          <div class="srcbar"><span>что читает следующая смена &middot; <b>настоящая запись</b></span><span class="verify">только дописывание, 31 запись</span></div>
+<pre>{
+  <span class="s">"at"</span>: <span class="s">"2026-09-30T12:14:40+03:00"</span>,
+  <span class="s">"order"</span>: <span class="s">"Step 0.110 (tooling)"</span>,
+  <span class="s">"issued_by"</span>: <span class="s">"dev0-pilot-1-27"</span>,
+  <span class="s">"kind"</span>: <span class="s">"note"</span>,
+  <span class="s">"decision"</span>: <span class="a">"waiting_for_conductor"</span>,
+  <span class="s">"question"</span>: <span class="s">"Принимаешь ... и публикуешь?"</span>,
+  <span class="s">"ground"</span>: <span class="s">"приёмка принадлежит человеку</span>
+<span class="s">              и не была дана ..."</span>,
+  <span class="s">"price"</span>: <span class="s">"..."</span>,
+  <span class="s">"evidence"</span>: [<span class="s">"path:line"</span>, <span class="s">"path:line"</span>]
+}</pre>
+        </div>
+      </div>
+      <p class="why"><b>Зачем журнал, а не лог</b> &nbsp;Решение, живущее в чате, умирает на границе смены. Здесь причина обязательна, запись неизменна, а остановка видна, пока человек её не снял - поэтому агент останавливается, не останавливая работу.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">ДЕМО 2 &middot; ~3,5 мин. Управленческое сердце доклада.</p>
+      <p><strong>Сначала запустить <code>open</code>, пусть будет скучно или пусто.</strong> Затем дописать эскалацию живьём и запустить <code>open</code> снова, чтобы зал увидел, как остановка появляется. Это и есть гейт: агент решил, что идти дальше не вправе, и назвал, кто должен ответить.</p>
+      <p><strong>Сказать, что даёт и чего стоит режим только дописывания.</strong> Ничего не редактируется, поэтому и запись ошибки, и её исправление остаются; читаешь историю, а не текущее состояние, которое врёт о том, как оно получилось.</p>
+      <p><strong>Эскалация не блокирует.</strong> Открытые вопросы накапливаются, работа продолжается, они видны, пока не сняты. Пообещаешь блокирующий гейт - спросят, как агенты избегают взаимной блокировки.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> журнал это <code>docs/implementation/tooling/pilot-journal.json</code> - 31 запись, 474 строки. Показывать файл только по запросу, вывод инструмента читается лучше.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 - ДЕМО 3 -->
+  <section class="slide" data-section="7 &middot; Демо 3" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">07 &middot; Живьём &middot; наряды</p>
+      <h2 class="head">Проверить наряд <span class="brass">до того</span>,<br>как исполнитель сожжёт прогон.</h2>
+      <div class="excerpt">
+        <div class="srcbar"><span>запустить &middot; <b>pilot_work_order</b></span><span class="verify">14 рабочих сценариев, S-01..S-14</span></div>
+<pre><span class="c"># какой это случай и какова процедура:</span>
+--call pilot_work_order --args '{"action": "scenarios", "scenario_id": "S-04"}'
+
+<span class="c"># можно ли этот наряд вообще отправлять:</span>
+--call pilot_work_order --args '{"action": "validate", "step": "Step 0.132"}'
+
+<span class="c"># где стоит план:</span>
+--call pilot_work_order --args '{"action": "status", "step": "Step 0.132"}'</pre>
+      </div>
+      <ul class="points">
+        <li><strong>Наряд - это документ в плане, а не сообщение.</strong> У него есть статус, предикаты и ветка поставки, поэтому исполнителя без присмотра может запустить таймер, и человека в цепочке нет.</li>
+        <li><strong>Проверка дешёвая, а альтернатива нет.</strong> Исполнитель, отправленный по негодному наряду, работает двадцать-тридцать минут и не приносит ничего.</li>
+        <li><strong>Четырнадцать названных сценариев</strong> покрывают отправку, возврат, ремонт и приёмку, поэтому процедуру смотрят, а не придумывают под каждый случай.</li>
+      </ul>
+      <p class="why"><b>Зачем проверять заранее</b> &nbsp;Дорогой отказ - не неверный ответ, а полный прогон без присмотра, который ничего не дал и обнаружен после того, как кончился.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">ДЕМО 3 &middot; ~3,5 мин. Здесь автономность перестаёт быть демонстрацией и становится работой.</p>
+      <p><strong>Начать с экономики.</strong> Один прогон исполнителя стоит реального времени и реального бюджета. Проверка наряда стоит миллисекунды. Это соотношение и есть весь аргумент за инструмент нарядов.</p>
+      <p><strong>Показать один сценарий, а не каталог.</strong> <code>S-04</code> достаточно: прочитать процедуру, затем проверить настоящий шаг и показать предикаты. Если проверка упадёт на чём-то настоящем, не скрывать - это инструмент работает.</p>
+      <p><strong>Ждать вопрос «это же просто трекер задач?».</strong> Ответ: наряд лежит в том же репозитории, что код и записи, поэтому исполнитель, гейт и человек читают один артефакт. Задача в другой системе - это второй источник истины.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> сценарии в <code>scripts/src/bash/pilot-work-order.sh</code>, сам план в <code>docs/implementation/implementation-plan.md</code>. Выбрать заведомо чистый шаг до выступления.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 - ДЕМО 4 (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="7a &middot; Демо 4" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">07a &middot; Живьём &middot; бюджет</p>
+      <h2 class="head">Не начинать того, что бюджет<br>не сможет <span class="brass">довести</span>.</h2>
+      <div class="excerpt">
+        <div class="srcbar"><span>запустить &middot; <b>pilot_battery</b></span><span class="verify">питание машины и прогноз</span></div>
+<pre>--call pilot_battery --args '{"battery_pct": 30.5, "shift_hours": 2.5}'
+
+<span class="c"># возвращает: заряд, состояние питания, скорость расхода в час</span>
+<span class="c"># и помещается ли запланированная смена в остаток</span></pre>
+      </div>
+      <ul class="points">
+        <li><strong>Регулятору нужно число, а не ощущение.</strong> Скорость расхода в час против запланированных часов отвечает на один вопрос: начинать тяжёлый наряд сейчас или лёгкий.</li>
+        <li><strong>Одно слово, две величины, один настоящий дефект.</strong> Этот инструмент сообщает электричество машины. Смену же ограничивает бюджет модели. Какое-то время отчёты несли показание питания в поле бюджета - семь отчётов - и выглядели измеренными, сообщая лишь, что ноутбук включён в сеть.</li>
+        <li><strong>Лечится названием, а не механикой.</strong> У каждой величины своё поле и своя шкала, чтобы шаблон не впитал чужую.</li>
+      </ul>
+      <p class="why"><b>Зачем рассказывать это</b> &nbsp;Это честная версия самоизмерения: прибор существовал, его спросили, и он всё равно дал строку, похожую на доказательство. Отказал словарь.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2,5 мин. Первое, что режется при нехватке времени - кроме зала, думающего об эксплуатации, где это лучший слайд.</p>
+      <p><strong>Рассказать дефект прямо.</strong> Он заходит лучше чистой возможности и служит сильнейшим доказательством, что фабрика измеряет себя: неверные строки нашли чтением своих же отчётов, а не по сбою.</p>
+      <p><strong>Если спросят, измеряется ли бюджет сейчас:</strong> сказать, что оценивается косвенно - недельный бюджет и переделки - и что поштучный учёт это следующая ступень зрелости. Не преувеличивать.</p>
+    </div>
+  </section>
+
+  <!-- 12 - ДЕМО 5 (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="7b &middot; Демо 5" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">07b &middot; Живьём &middot; три студии</p>
+      <h2 class="head">Один сервер, <span class="brass">три</span> студии,<br>без переходников.</h2>
+      <div class="excerpt">
+        <div class="srcbar"><span>регистрация это одна строка на студию</span><span class="verify">пути показаны относительно $REPO</span></div>
+<pre><span class="c"># CLI-агент A</span>
+claude mcp add pilot-assistant python3 $REPO/scripts/src/python/pilot_mcp_server.py
+
+<span class="c"># CLI-агент B</span>
+agy mcp add pilot-assistant -- python3 $REPO/scripts/src/python/pilot_mcp_server.py
+
+<span class="c"># IDE: блок json в конфигурации рабочей области</span>
+{"mcpServers": {"pilot-assistant":
+  {"command": "python3", "args": ["scripts/src/python/pilot_mcp_server.py"]}}}
+
+<span class="c"># и совсем без студии, для тестов и CI:</span>
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | python3 $REPO/...</pre>
+      </div>
+      <ul class="points">
+        <li><strong>Человек не пишет JSON.</strong> После регистрации студия вкладывает схемы в каталог функций модели; человек просит словами, модель собирает вызов.</li>
+        <li><strong>Четвёртый режим - самый важный инженерно.</strong> Обычный конвейер означает, что набор инструментов проверяется в CI без модели, без ключа и без сети.</li>
+        <li><strong>Нейтральность к поставщику - свойство артефакта,</strong> а не обещание: контракт это markdown-документ плюс stdio-процесс, поэтому студию меняют, не трогая инструменты.</li>
+      </ul>
+      <p class="why"><b>Зачем нейтральность несущая</b> &nbsp;Оснастка, приваренная к одной студии, теряется в день её смены, а студии меняются быстрее, чем кончаются проекты.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. Сильно для зала, который стандартизировался на одном поставщике и этим обеспокоен.</p>
+      <p><strong>Здесь показывать конвейер, а не чат.</strong> Разговорный путь уже показан в демо 1. Удивляет именно конвейер: тот же набор инструментов работает вообще без модели, поэтому его покрывают обычными тестами.</p>
+      <p><strong>Пути на экране держать нейтральными.</strong> Всё относительно <code>$REPO</code>; строка регистрации в нашем собственном документе дизайна всё ещё несёт старый абсолютный путь и исправляется.</p>
+    </div>
+  </section>
+
+  <!-- 13 - НУЛЕВЫЕ ТОКЕНЫ -->
+  <section class="slide" data-section="8 &middot; Экономика" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">08 &middot; Под капотом</p>
+      <h2 class="head">Не дешевле прочитать.<br><span class="brass">Невозможно</span> прочитать.</h2>
+      <p class="lede">Обычный довод в пользу инструмента - экономия токенов. Настоящий довод сильнее: факты, нужные оркестратору, либо слишком велики для загрузки, либо вообще не файлы.</p>
+      <div class="kpis">
+        <div class="kpi"><div class="num">106 <u>МБ</u></div><div class="lbl">транскрипты студий, 168 файлов</div></div>
+        <div class="kpi"><div class="num">9,23 <u>МБ</u></div><div class="lbl">самый большой из них</div></div>
+        <div class="kpi"><div class="num">~2 <u>КБ</u></div><div class="lbl">что инструмент из него отдаёт</div></div>
+        <div class="kpi"><div class="num">4600<u>:1</u></div><div class="lbl">измеренное сжатие</div></div>
+      </div>
+      <ul class="points">
+        <li><strong>Один транскрипт больше любого контекстного окна.</strong> 9,23 МБ это порядка 2,4 миллиона токенов. Инструмент берёт пять последних сообщений человека, обрезая каждое до 400 символов.</li>
+        <li><strong>Три источника из шести нечего открывать.</strong> Состояние таймера, живость блокировки и прогноз бюджета получают, спрашивая систему, а не открывая файл.</li>
+        <li><strong>Схемы - единственная плата контекстом.</strong> Все пять инструментов вместе это несколько сотен токенов, несомых один раз, и они заменяют повторные чтения на тысячи токенов.</li>
+      </ul>
+      <p class="why"><b>Зачем менять формулировку</b> &nbsp;«Экономит токены» приглашает торговаться о ценах моделей. «Отвечает на то, чего чтением не узнать» - нет.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 8 &middot; ~3 мин. Количественный центр доклада. Все числа здесь измерены, а не оценены.</p>
+      <p><strong>Начать с файла в 9,23 МБ.</strong> Спросить зал, что бы они с ним сделали. Кто-нибудь скажет «порезать на куски» или «суммаризовать»; ответить, что оба варианта стоят вызова модели за смену, а нужные пять строк лежат в конце и бесплатны.</p>
+      <p><strong>Быть точным в том, что измерено и что выведено.</strong> Мегабайты, число файлов и 2 КБ на выходе - измерены. Токены это пересчёт по четыре байта на токен, и говорить их надо как порядок величины.</p>
+      <p><strong>Если спросят про стоимость в целом:</strong> честный ответ - в работе агентов преобладает повторная загрузка контекста, а не рассуждение, и именно по этому бьёт набор инструментов.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> чтобы освежить числа перед докладом, пересчитать транскрипты в домашнем каталоге студии и запустить инструмент один раз. Не цитировать этот слайд без перемера: он снимок на дату по самой своей природе.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 - ГЕЙТЫ ПО ЦЕНЕ -->
+  <section class="slide" data-section="9 &middot; Гейты" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">09 &middot; Машинные гейты</p>
+      <h2 class="head">Узкие гейты часто,<br><span class="brass">широкий</span> в конце.</h2>
+      <p class="lede">843 автоматические проверки - это не один гейт. Это семейство с разной ценой, и цена решает, как часто каждый запускается.</p>
+      <table class="grid compact">
+        <tr><th>Гейт</th><th class="m">Охват</th><th class="m">Проверок</th><th class="m">Цена</th><th>Когда</th></tr>
+        <tr><td>тесты оснастки</td><td class="m">python оснастки</td><td class="m">366</td><td class="m"><span class="a">6,9 с</span></td><td>каждая правка</td></tr>
+        <tr><td>линтер, узкий</td><td class="m">только тронутые файлы</td><td class="m">-</td><td class="m"><span class="a">0,6 с</span></td><td>каждая правка</td></tr>
+        <tr><td>линтер, всё дерево</td><td class="m">каждый документ</td><td class="m">-</td><td class="m">2,9 с</td><td>перед сдачей</td></tr>
+        <tr><td>тесты шелла</td><td class="m">27 скриптов, 22 файла</td><td class="m">477</td><td class="m"><span class="a">254 с</span></td><td>перед поставкой</td></tr>
+        <tr><td>полный прогон</td><td class="m">пять наборов вместе</td><td class="m">843+</td><td class="m">минуты</td><td>релиз</td></tr>
+      </table>
+      <ul class="points">
+        <li><strong>Охват - это параметр, а не отдельный инструмент.</strong> Один линтер принимает названные файлы, проиндексированный набор, рабочее дерево или всё целиком - поэтому узкий и широкий гейт не могут разойтись в правилах.</li>
+        <li><strong>Та же форма повторяется в каждой подсистеме:</strong> набор только для оснастки рядом с полным, узкий линтер рядом с общедревесным, и одна команда, запускающая все пять для релиза.</li>
+      </ul>
+      <p class="why"><b>Почему не один гейт</b> &nbsp;Единственный гейт либо слишком медленный, чтобы гонять его на каждую правку - тогда он запускается редко и перестаёт ловить - либо слишком узкий, чтобы доверять ему при сдаче. Разделение по цене и делает дешёвый привычным.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">СЛАЙД 9 &middot; ~3 мин. Эксплуатационный слайд. Он заменил более раннее и более слабое утверждение.</p>
+      <p><strong>Прежняя версия этого слайда говорила, что узкий линтер в пятнадцать раз быстрее полного.</strong> Это перестало быть правдой, когда репозиторий переехал на быструю файловую систему: всё дерево теперь линтуется меньше чем за три секунды. Честная история - таблица цен, и она переживёт следующее ускорение.</p>
+      <p><strong>Показать на 254 секунды без извинений.</strong> Набор шелла дорогой потому, что гоняет настоящие скрипты против настоящих git-деревьев. Поэтому он стоит на поставке, а не после каждой правки.</p>
+      <p><strong>Сделать мысль про охват-как-параметр конкретной:</strong> один линтер, четыре охвата. Будь узкий и широкий гейт разными программами, они бы разошлись, и узкий начал бы пропускать то, на чём широкий падает.</p>
+      <div class="cockpit">
+        <p><strong>Кокпит:</strong> имена гейтов лежат в <code>package.json</code>, флаги охвата в разборе аргументов линтера. Перемерить все пять перед докладом и обновить таблицу: числа здесь и есть слайд.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15 - КАПИТАЛ (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="9a &middot; Капитал" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">09a &middot; Что переживает проект</p>
+      <h2 class="head">Скилы строят. Решения правят.<br><span class="brass">Уроки</span> накапливаются.</h2>
+      <div class="cols three">
+        <div class="card">
+          <p class="k">скилы &middot; станки</p>
+          <h3>Один шаблон, все студии</h3>
+          <p>Канонический скил и тонкие обёртки под каждую студию. Правишь канонический - следуют все. Запускаешь один, получаешь артефакт правильной схемы.</p>
+        </div>
+        <div class="card steel">
+          <p class="k">записи решений</p>
+          <h3>Управление по средствам</h3>
+          <p>Полные записи для архива, сжатые выжимки для контекстного окна, загружаемые только когда управляют текущей задачей.</p>
+        </div>
+        <div class="card">
+          <p class="k">уроки &middot; петля</p>
+          <h3>Линия умнеет</h3>
+          <p>Каждый значимый обмен становится самодостаточным уроком в общем подмодуле и переносится в следующий проект, а не остаётся в этом.</p>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="num">23</div><div class="lbl">канонических скила</div></div>
+        <div class="kpi"><div class="num">21</div><div class="lbl">выжимки решений</div></div>
+        <div class="kpi"><div class="num">241</div><div class="lbl">записанный урок</div></div>
+        <div class="kpi"><div class="num">408</div><div class="lbl">шаговых записей</div></div>
+      </div>
+      <p class="why"><b>Зачем это считать</b> &nbsp;Без переиспользования каждый проект платит ту же плату за обучение снова. Это счёт по живому дереву, поэтому утверждение проверяемо, а не риторично.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. Хорошо для управленческого зала, режется для протокольного.</p>
+      <p><strong>Сказать, что числа это снимок и они растут.</strong> За неполных три месяца выросли на пятую часть. Освежать по дереву перед выступлением: устаревший счёт - самое простое, на чём поймают.</p>
+      <p><strong>Переносимая идея здесь - шаблон обёртки.</strong> Содержание живёт один раз, каждая студия получает тонкую прокладку. Это тот же приём, что тонкий мост MCP, только применённый к промптам вместо процессов.</p>
+    </div>
+  </section>
+
+  <!-- 16 - КОЛЬЦА (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="9b &middot; Кольца" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">09b &middot; Кольца защиты</p>
+      <h2 class="head">Автономный исполнитель<br><span class="brass">без права публиковать</span>.</h2>
+      <table class="grid">
+        <tr><th>Кольцо</th><th>Кто</th><th>Может</th><th>Не может</th></tr>
+        <tr><td class="m"><span class="a">0</span></td><td>человек</td><td>принимать, публиковать, задавать объём</td><td>-</td></tr>
+        <tr><td class="m">1</td><td>сессия-пилот</td><td>планировать, отправлять, коммитить локально, останавливать</td><td>публиковать в удалённый репозиторий</td></tr>
+        <tr><td class="m">3</td><td>исполнитель без присмотра</td><td>работать в своём клоне, пушить в свою ветку</td><td>касаться общей ветки и репозиториев заказчика</td></tr>
+      </table>
+      <ul class="points">
+        <li><strong>Поставка идёт через git, а не через доверие.</strong> Исполнитель пушит в собственную ветку и там останавливается, сливает человек. Периметр держится тем, какой ключ где лежит, а не указаниями в промпте.</li>
+        <li><strong>Клон исполнителя расходный.</strong> Плохой прогон портит копию. Ничего из сделанного им не попадает в общую историю, не пройдя гейт и человека.</li>
+      </ul>
+      <p class="why"><b>Почему кольца, а не правила</b> &nbsp;Промпт со словами «не пушить» - это пожелание вероятностной системе. Отсутствующий ключ - нет.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. Слайд, отвечающий на «вам не страшно оставлять это без присмотра?».</p>
+      <p><strong>Ответ в одну строку:</strong> страшно, поэтому у исполнителя нет ключа ни к чему важному.</p>
+      <p><strong>Если спросят про инъекцию в промпт:</strong> сказать честно - модель колец ограничивает радиус поражения, а не предотвращает плохое поведение, и это намеренно. Затем отослать к слайду периметра за тем, что добавляет слой инструментов.</p>
+    </div>
+  </section>
+
+  <!-- 17 - СЕТЬ (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="9c &middot; Сеть" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">09c &middot; Дальше одной машины</p>
+      <h2 class="head">Два хоста, одна <span class="brass">работа</span>.</h2>
+      <div class="hscroll">
+        <div class="flow">
+          <div class="node accent"><div class="n-k">хост A</div><div class="n-v">пилот<br>+ исполнители</div></div>
+          <div class="arrow"></div>
+          <div class="node"><div class="n-k">транспорт</div><div class="n-v">ссылки git<br>+ телеметрия</div></div>
+          <div class="arrow"></div>
+          <div class="node accent"><div class="n-k">хост B</div><div class="n-v">пилот<br>+ исполнители</div></div>
+          <div class="arrow"></div>
+          <div class="node"><div class="n-k">сегодня</div><div class="n-v">stdio<br>на хост</div></div>
+          <div class="arrow"></div>
+          <div class="node"><div class="n-k">описано</div><div class="n-v">http / sse<br>не построено</div></div>
+        </div>
+      </div>
+      <ul class="points">
+        <li><strong>Набор инструментов сегодня живёт на каждом хосте отдельно, и это выбор.</strong> Каждый хост держит свой stdio-сервер против своего клона; хосты встречаются в git, где состояние уже надёжно и уже проверяемо.</li>
+        <li><strong>Удалённый транспорт спроектирован и намеренно отложен.</strong> Написать его до того, как два хоста столкнулись, значило бы строить под выдуманную задачу.</li>
+        <li><strong>Границу пересекают факты, а не сессии.</strong> Ветки, телеметрия и записи едут; контекстное окно - никогда.</li>
+      </ul>
+      <p class="why"><b>Почему ещё не демон</b> &nbsp;Сетевая служба требует аутентификации, жизненного цикла и поверхности атаки. Пока два хоста реально не упёрлись друг в друга, stdio плюс git были строго дешевле и строго безопаснее.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. Оставлять для инфраструктурного зала.</p>
+      <p><strong>Это слайд «мы этого ещё не построили», и в этом его смысл.</strong> Проект есть, реализация ждёт настоящего ограничения. Говорить это как дисциплину, а не как извинение.</p>
+    </div>
+  </section>
+
+  <!-- 18 - ГОРИЗОНТ (РАСШИРЕНИЕ) -->
+  <section class="slide" data-section="9d &middot; Горизонт" data-tier="ext">
+    <div class="wrap">
+      <p class="eyebrow steel">09d &middot; Горизонт</p>
+      <h2 class="head">Пять инструментов на одного пилота.<br>А на <span class="brass">двенадцать фабрик</span>?</h2>
+      <p class="lede">Та же шина на уровень выше: каждая специализированная фабрика выставляет свой типизированный набор, и артефакты одной становятся входным контрактом следующей.</p>
+      <div class="cols two">
+        <div class="card">
+          <p class="k">вопрос масштаба</p>
+          <h3>Наборы, а не одна огромная поверхность</h3>
+          <p>Каталог инструментов, растущий без предела, перестаёт влезать в внимание модели. Двенадцать фабрик означают сгруппированные наборы, обнаруживаемые по требованию, и проверяемые, а не предполагаемые швы между ними.</p>
+        </div>
+        <div class="card steel">
+          <p class="k">честный статус</p>
+          <h3>Архитектура написана, не поставлена</h3>
+          <p>Интерфейс меги-фабрики описан как проектный документ. Сегодня работает тот набор из пяти инструментов, который вы только что видели. Разрыв между этими двумя и есть интересная работа.</p>
+        </div>
+      </div>
+      <ul class="points">
+        <li><strong>Этот доклад первый в серии.</strong> Планирование и параллельность, экономика токенов и иерархия памяти, распределённый случай - каждому нужен свой час.</li>
+      </ul>
+      <p class="why"><b>Почему остановиться здесь</b> &nbsp;Демонстрация пяти работающих инструментов - доказательство. Обзор двенадцати спроектированных - брошюра, и зал отличает одно от другого.</p>
+    </div>
+    <div class="notes">
+      <p class="timing">РАСШИРЕНИЕ &middot; ~2 мин. Закрывать этим только опытный и стратегический зал.</p>
+      <p><strong>Держать карточку честности на виду.</strong> Прямо сказанное «слой двенадцати фабрик спроектирован и не построен» - именно то, что делает пять работающих инструментов правдоподобными.</p>
+      <p><strong>Предлагать серию, а не выходить за время.</strong> Если вопросы тянут в планирование или в стоимость - это следующий доклад, и сказать так лучше, чем импровизировать половину сейчас.</p>
+    </div>
+  </section>
+
+  <!-- 19 - ВОПРОСЫ + КОКПИТ -->
+  <section class="slide" data-section="Вопросы &middot; Карта демо" data-tier="core">
+    <div class="wrap">
+      <p class="eyebrow">Вопросы &middot; и живая карта</p>
+      <h2 class="head">Вопросы - и куда <span class="brass">смотреть</span>.</h2>
+      <p class="lede">Карта демо: открывать сверху вниз, каждая строка отвечает одному утверждению деки.</p>
+      <div class="maplist">
+        <div class="row"><code>pilot_mcp_server.py</code><span>весь мост, 693 строки</span></div>
+        <div class="row"><code>:394</code><span>вектор аргументов, то есть периметр</span></div>
+        <div class="row"><code>:63-215</code><span>пять определений инструментов и их схемы</span></div>
+        <div class="row"><code>pilot-look.sh:48</code><span>почему lock-файл ничего не доказывает</span></div>
+        <div class="row"><code>pilot-journal.json</code><span>журнал, 31 запись, только дописывание</span></div>
+        <div class="row"><code>pilot-work-order.sh</code><span>14 сценариев</span></div>
+        <div class="row"><code>test_pilot_mcp_server.py</code><span>23 теста на мост</span></div>
+        <div class="row"><code>package.json</code><span>семейство гейтов и их охваты</span></div>
+      </div>
+      <div class="qa-grid">
+        <div class="qa"><p class="q">Почему не дать модели шелл?</p><p class="a">Потому что тогда радиус поражения - вся машина. Типизированная поверхность значит, что модель поставляет значения, но не синтаксис, и каждая дверь открыта нами намеренно.</p></div>
+        <div class="qa"><p class="q">Это же просто вызов функций?</p><p class="a">Соглашение о вызове обычное. Необычно то, что вызываемое детерминировано, покрыто тестами и это то же самое, что запускает человек.</p></div>
+        <div class="qa"><p class="q">Сколько стоит такое построить?</p><p class="a">Мост это 693 строки стандартной библиотеки над скриптами, которые уже были. Дорого стоило решить, чего инструмент не должен делать никогда.</p></div>
+        <div class="qa"><p class="q">Агент делает всё сам?</p><p class="a">Нет. Приёмка и публикация - человеческие по построению: у исполнителя нет ключа ни к тому, ни к другому.</p></div>
+      </div>
+    </div>
+    <div class="notes">
+      <p class="timing">ВОПРОСЫ &middot; 3-5 мин. Этот слайд одновременно кокпит.</p>
+      <p><strong>Открывать файлы, но не читать их.</strong> Три артефакта рассказывают всю историю: определения инструментов, вектор аргументов на строке 394 и журнал. Остальное - по запросу.</p>
+      <p><strong>Четыре карточки - вопросы, которые действительно зададут.</strong> Держать каждый ответ в двух фразах и привязывать к слайду, чтобы ответ укреплял деку, а не начинал новый доклад.</p>
+      <p><strong>Два вопроса, которых на слайде нет, а ответ нужен:</strong> «а обход путей?» - уже выдан самому на слайде периметра, сказать, что это известная недостающая защёлка и она в списке; и «что это вам сэкономило?» - отвечать измеренным сжатием и ценами гейтов, а не ощущением.</p>
+      <div class="cockpit">
+        <p><strong>Перед каждым прогоном доклада:</strong> перемерить таблицу гейтов и слайд экономики по живому дереву, убедиться, что в терминале задан <code>REPO</code>, и держать под рукой запись на подстраховку. Каждое число в этой деке - снимок с адресом: проверять, а не доверять.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="drawer" id="drawer" aria-live="polite">
+  <div class="dhead">
+    <span>Контекст &middot; заметки докладчика</span>
+    <button id="drawerClose">Закрыть &middot; N</button>
+  </div>
+  <div class="dbody" id="drawerBody"></div>
+</div>
+
+<footer class="footbar">
+  <div class="dots" id="dots"></div>
+  <div class="hint">
+    <span><kbd>&rarr;</kbd> вперёд</span>
+    <span><kbd>&larr;</kbd> назад</span>
+    <span><kbd>N</kbd> заметки</span>
+    <span><kbd>O</kbd> обзор</span>
+    <span><kbd>C</kbd> ядро</span>
+    <span><kbd>T</kbd> тема</span>
+  </div>
+  <div class="foot-actions">
+    <button id="btnTier" aria-pressed="false">Ядро</button>
+    <button id="btnNotes">Заметки</button>
+    <button id="btnTheme">Тема</button>
+  </div>
+</footer>
+
+<div class="help-toast" id="toast"></div>
+
+<script>
+(function () {
+  var allSlides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var tier = 'full';
+  var current = 0;
+  var sectionLabel = document.getElementById('sectionLabel');
+  var idxNow = document.getElementById('idxNow');
+  var idxTotal = document.getElementById('idxTotal');
+  var tierMark = document.getElementById('tierMark');
+  var dotsWrap = document.getElementById('dots');
+  var drawer = document.getElementById('drawer');
+  var drawerBody = document.getElementById('drawerBody');
+  var toast = document.getElementById('toast');
+  var stage = document.getElementById('stage');
+  var btnTier = document.getElementById('btnTier');
+
+  function deck() {
+    return allSlides.filter(function (s) {
+      return tier === 'full' || s.getAttribute('data-tier') !== 'ext';
+    });
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function buildDots() {
+    dotsWrap.innerHTML = '';
+    deck().forEach(function (s, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-label', 'Слайд ' + (i + 1));
+      if (s.getAttribute('data-tier') === 'ext') b.classList.add('optional');
+      b.addEventListener('click', function () { go(i); });
+      dotsWrap.appendChild(b);
+    });
+  }
+
+  function render() {
+    var d = deck();
+    if (current >= d.length) current = d.length - 1;
+    if (current < 0) current = 0;
+    allSlides.forEach(function (s) { s.classList.remove('is-active'); });
+    var active = d[current];
+    active.classList.add('is-active');
+    Array.prototype.slice.call(dotsWrap.children).forEach(function (b, i) {
+      b.setAttribute('aria-current', i === current ? 'true' : 'false');
+    });
+    sectionLabel.innerHTML = active.getAttribute('data-section');
+    idxNow.textContent = pad(current + 1);
+    idxTotal.textContent = pad(d.length);
+    tierMark.textContent = tier === 'full' ? 'ПОЛНАЯ' : 'ЯДРО';
+    var notes = active.querySelector('.notes');
+    drawerBody.innerHTML = notes ? notes.innerHTML : '<p>Для этого слайда заметок нет.</p>';
+    active.scrollTop = 0;
+  }
+
+  function go(i) {
+    var d = deck();
+    current = Math.max(0, Math.min(d.length - 1, i));
+    render();
+  }
+  function next() { if (current < deck().length - 1) go(current + 1); }
+  function prev() { if (current > 0) go(current - 1); }
+
+  function setTier(t) {
+    var d = deck();
+    var keep = d[current];
+    tier = t;
+    buildDots();
+    var nd = deck();
+    var idx = nd.indexOf(keep);
+    if (idx === -1) {
+      idx = 0;
+      for (var i = allSlides.indexOf(keep); i >= 0; i--) {
+        var cand = nd.indexOf(allSlides[i]);
+        if (cand !== -1) { idx = cand; break; }
+      }
+    }
+    current = idx;
+    btnTier.textContent = tier === 'full' ? 'Ядро' : 'Полная';
+    btnTier.setAttribute('aria-pressed', tier === 'core' ? 'true' : 'false');
+    var plan = document.getElementById('tierPlan');
+    if (plan) {
+      plan.innerHTML = tier === 'full'
+        ? 'Показаны <b>все 19 слайдов</b>. Клавиша <b>C</b> переключает на ядро из 11.'
+        : 'Показано <b>ядро из 11 слайдов</b>. Слайды расширения вынуты из деки. Клавиша <b>C</b> возвращает их.';
+    }
+    Array.prototype.slice.call(document.querySelectorAll('#tierToggle button')).forEach(function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-tier') === tier ? 'true' : 'false');
+    });
+    render();
+    showToast(tier === 'full' ? 'Полная: 19 слайдов, 45 минут' : 'Ядро: 11 слайдов, 20-25 минут');
+  }
+
+  function toggleDrawer(force) {
+    var open = force === undefined ? !drawer.classList.contains('open') : force;
+    drawer.classList.toggle('open', open);
+  }
+
+  function showToast(msg) {
+    if (!msg) return;
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { toast.classList.remove('show'); }, 1500);
+  }
+
+  function currentTheme() {
+    var attr = document.documentElement.getAttribute('data-theme');
+    if (attr) return attr;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function toggleTheme() {
+    var t = currentTheme() === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    showToast('Тема: ' + (t === 'dark' ? 'тёмная' : 'светлая'));
+  }
+
+  document.getElementById('btnTheme').addEventListener('click', toggleTheme);
+  document.getElementById('btnNotes').addEventListener('click', function () { toggleDrawer(); });
+  document.getElementById('drawerClose').addEventListener('click', function () { toggleDrawer(false); });
+  btnTier.addEventListener('click', function () { setTier(tier === 'full' ? 'core' : 'full'); });
+
+  Array.prototype.slice.call(document.querySelectorAll('#tierToggle button')).forEach(function (b) {
+    b.addEventListener('click', function () { setTier(b.getAttribute('data-tier')); });
+  });
+
+  var pivotBtns = Array.prototype.slice.call(document.querySelectorAll('#pivotToggle button'));
+  var pivotPlan = document.getElementById('pivotPlan');
+  var plans = {
+    slides: 'План: <b>пройти все слайды</b>, запустить демо 1 и демо 2 живьём, терминал держать для вопросов.',
+    demo: 'План: <b>только слайды 1, 3, 4 и 8</b>, дальше живьём в инструментах по карте демо. Закрыть вопросами.'
+  };
+  pivotBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      pivotBtns.forEach(function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+      pivotPlan.innerHTML = plans[b.getAttribute('data-plan')];
+    });
+  });
+
+  var overview = false;
+  function toggleOverview() {
+    overview = !overview;
+    document.body.classList.toggle('overview', overview);
+    if (overview) injectOverviewStyles();
+    showToast(overview ? 'Обзор: O или Esc для выхода' : 'Режим слайдов');
+  }
+  function injectOverviewStyles() {
+    if (document.getElementById('ovStyle')) return;
+    var css = document.createElement('style');
+    css.id = 'ovStyle';
+    css.textContent =
+      '.overview .stage{position:fixed;inset:56px 0 52px;overflow:auto;padding:22px;display:grid;' +
+      'grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;align-content:start;}' +
+      '.overview .slide{position:relative;inset:auto;opacity:1;visibility:visible;transform:none;' +
+      'height:180px;overflow:hidden;border:1px solid var(--line);border-radius:10px;padding:16px;' +
+      'cursor:pointer;box-shadow:var(--shadow);background:var(--panel);justify-content:flex-start;}' +
+      '.overview .slide[data-tier="ext"]{border-style:dashed;}' +
+      '.overview .slide.is-active{outline:2px solid var(--accent);}' +
+      '.overview .slide .wrap{max-width:none;transform:scale(.84);transform-origin:top left;}' +
+      '.overview .slide .pivot,.overview .slide .kpis,.overview .slide .hscroll,.overview .slide .cols,' +
+      '.overview .slide .excerpt,.overview .slide .two-up,.overview .slide table.grid,.overview .slide .maplist,' +
+      '.overview .slide .qa-grid,.overview .slide .pull,.overview .slide .points,.overview .slide .title-meta,' +
+      '.overview .slide .why{display:none;}';
+    document.head.appendChild(css);
+    allSlides.forEach(function (s) {
+      s.addEventListener('click', function () {
+        if (!document.body.classList.contains('overview')) return;
+        var idx = deck().indexOf(s);
+        if (idx === -1) return;
+        toggleOverview();
+        go(idx);
+      });
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    switch (e.key) {
+      case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(deck().length - 1); break;
+      case 'n': case 'N': e.preventDefault(); toggleDrawer(); break;
+      case 't': case 'T': e.preventDefault(); toggleTheme(); break;
+      case 'c': case 'C': e.preventDefault(); setTier(tier === 'full' ? 'core' : 'full'); break;
+      case 'o': case 'O': e.preventDefault(); toggleOverview(); break;
+      case 'Escape':
+        if (document.body.classList.contains('overview')) toggleOverview();
+        else toggleDrawer(false);
+        break;
+      default:
+        if (/^[1-9]$/.test(e.key)) { e.preventDefault(); go(parseInt(e.key, 10) - 1); }
+    }
+  });
+
+  stage.addEventListener('click', function (e) {
+    if (document.body.classList.contains('overview')) return;
+    if (e.target.closest('button, a, input, .pivot, .excerpt')) return;
+    var x = e.clientX / window.innerWidth;
+    if (x > 0.72) next();
+    else if (x < 0.12) prev();
+  });
+
+  buildDots();
+  render();
+})();
+</script>
+
+</body>
+</html>
